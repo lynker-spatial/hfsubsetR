@@ -5,6 +5,8 @@
 
 <!-- badges: start -->
 
+[![R CMD
+Check](https://github.com/lynker-spatial/hfsubsetR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/lynker-spatial/hfsubsetR/actions/workflows/R-CMD-check.yaml)
 [![Dependencies](https://img.shields.io/badge/dependencies-6/70-orange?style=flat)](#)
 <!-- badges: end -->
 
