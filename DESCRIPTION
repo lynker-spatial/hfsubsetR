@@ -1,0 +1,27 @@
+Package: hfsubsetR
+Type: Package
+Title: Build Hydrofabric subsets in R
+Description: Extract hydrofabric subsets in R.
+Version: 0.0.9
+Authors@R: 
+    c(person(given = "Mike", family = "Johnson", role = c("aut", "cre"),
+             email = "jjohnson@lynker.com"),
+             person(given = "Justin", family = "Singh-Mohudpur", role = c("ctb")),
+             person(given = "Arash", family = "Modaresi Rad", role = c("ctb")))
+Maintainer: Mike Johnson <jjohnson@lynker.com>
+BugReports: https://github.com/lynker-spatial/hfsubsetR
+URL: https://github.com/lynker-spatial/hfsubsetR  
+Depends: 
+    R (>= 4.2)
+Imports: 
+    arrow,
+    dplyr,
+    glue,
+    sf,
+    jsonlite,
+    nhdplusTools,
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.1
+Config/testthat/edition: 3
