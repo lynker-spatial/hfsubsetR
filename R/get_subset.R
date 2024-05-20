@@ -8,8 +8,8 @@
 #' @param type hydrofabric type
 #' @param hf_version hydrofabric version
 #' @param source hydrofabric source (local root directory or s3 link)
-#' @param outfile Data will be written to a file if supplied. 
 #' @param outfile If gpkg file path is provided, data will be written to a file.
+#' @param overwrite overwrite existing outfile file path. Default is FALSE
 #' @export
 #' @importFrom glue glue
 #' @importFrom nhdplusTools discover_nhdplus_id get_sorted
@@ -26,8 +26,18 @@ get_subset = function(id = NULL,
                       type = "reference",
                       hf_version = "2.2", 
                       source = "s3://lynker-spatial/hydrofabric",
-                      outfile = NULL) {
+                      outfile = NULL, 
+                      overwrite = FALSE) {
   
+  if (!is.null(outfile)) {
+    if (file.exists(outfile) & overwrite) {
+      unlink(outfile)
+    } else if (file.exists(outfile)) {
+      warning(glue("{outfile} already exists and overwrite is FALSE"))
+      return(outfile)
+    }
+  }
+
   hf_id <-  vpuid <- 
     topo <- hl_reference <- 
     hl_link <- hl_source <- 

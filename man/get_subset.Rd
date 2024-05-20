@@ -14,7 +14,8 @@ get_subset(
   type = "reference",
   hf_version = "2.2",
   source = "s3://lynker-spatial/hydrofabric",
-  outfile = NULL
+  outfile = NULL,
+  overwrite = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ get_subset(
 \item{source}{hydrofabric source (local root directory or s3 link)}
 
 \item{outfile}{If gpkg file path is provided, data will be written to a file.}
+
+\item{overwrite}{overwrite existing outfile file path. Default is FALSE}
 }
 \description{
 Build a hydrofabric subset

@@ -10,7 +10,17 @@ get_vpu_fabric = function(vpu = "01",
                           type = "reference",
                           hf_version = "2.2", 
                           source = "s3://lynker-spatial/hydrofabric",
-                          outfile = NULL){
+                          outfile = NULL,                    
+                          overwrite = FALSE) {
+  
+  if (!is.null(outfile)) {
+    if (file.exists(outfile) & overwrite) {
+      unlink(outfile)
+    } else if (file.exists(outfile)) {
+      warning(glue("{outfile} already exists and overwrite is FALSE"))
+      return(outfile)
+    }
+  }
   
   vpuid <- NULL
   
