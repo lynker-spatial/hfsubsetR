@@ -15,7 +15,7 @@
 #' @importFrom nhdplusTools discover_nhdplus_id get_sorted
 #' @importFrom arrow open_dataset
 #' @importFrom dplyr select filter collect `%>%` everything
-#' @importFrom sf st_set_crs write_sf st_sfc st_point
+#' @importFrom sf st_set_crs write_sf st_sfc st_point st_bbox
 
 get_subset = function(id = NULL, 
                       comid = NULL,  
