@@ -17,9 +17,9 @@ Imports:
     arrow,
     dplyr,
     glue,
-    sf,
     jsonlite,
     nhdplusTools,
+    sf
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true

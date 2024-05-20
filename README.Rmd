@@ -1,0 +1,55 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# hfsubsetR
+
+<!-- badges: start -->
+[![Dependencies](https://img.shields.io/badge/dependencies-6/70-orange?style=flat)](#)
+<!-- badges: end -->
+
+The goal of `hfsubsetR` is to extract hydrofabric subsets from cloud or local archives built in `lynker-spatial`.
+
+## Installation
+
+You can install the development version of `hfsubsetR` from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("lynker-spatial/hfsubsetR")
+```
+
+## Remote Access
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r remote}
+## basic example code
+```
+
+## Local
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r local}
+## basic example code
+```
+
+## Hydrolocation Extraction
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r hydrolocation}
+## basic example code
+```
