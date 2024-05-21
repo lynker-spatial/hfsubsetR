@@ -1,8 +1,8 @@
 # Initialize constant variables
-source = 's3://lynker-spatial/hydrofabric'
-type = "reference"
-hf_version = "2.2"
-outfile = 'subset_test.gpkg'
+source <- 's3://lynker-spatial/hydrofabric'
+type <- "reference"
+hf_version <- "2.2"
+outfile <- 'subset_test.gpkg'
 library(sf)
 
 # --------------------- Reference fabric ---------------------------#
