@@ -152,7 +152,7 @@ get_subset = function(id = NULL,
   } else {
     write_sf(fl, outfile, "flowpaths")
     write_sf(div, outfile, "divides")
-    write_sf(net, outfile, "network")
+    write_sf(subset, outfile, "network")
     return(outfile)
   }
 }
