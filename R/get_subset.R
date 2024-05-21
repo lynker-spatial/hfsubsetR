@@ -1,3 +1,7 @@
+na.omit = function(x){
+  x[!is.na(x)]
+}
+
 #' @title Build a hydrofabric subset
 #' @param id hydrofabric id. datatype: string / vector of strings e.g., 'wb-10026' or c('wb-10026', 'wb-10355') 
 #' @param comid NHDPlusV2 COMID. datatype: int / vector of int e.g., 61297116 or c(61297116 , 6129261) 
@@ -71,11 +75,11 @@ get_subset = function(id = NULL,
   if(!is.null(poi_id)){
     hl <- open_dataset(hl_hook) %>% 
       filter(poi_id == !!poi_id) %>% 
-      select(comid = hf_id, poi_id, vpuid) %>% 
+      select(hl_source, comid = hf_id, poi_id, vpuid) %>% 
       collect()
     
     origin <- open_dataset(net_hook) %>% 
-      filter(vpuid == hl$vpuid, hf_id == hl$comid) %>% 
+      filter(vpuid == hl$vpuid[1], hf_id == hl$comid[1]) %>% 
       select(id, vpuid, topo) %>% 
       collect()
   }
@@ -135,13 +139,13 @@ get_subset = function(id = NULL,
   
   fl = open_dataset(glue("{hook}_flowlines")) %>% 
     filter(vpuid == origin$vpuid) %>% 
-    filter(id %in% fl_ids) %>% 
+    filter(id %in% na.omit(fl_ids)) %>% 
     read_sf_dataset() %>% 
     st_set_crs(5070)
   
   div = open_dataset(glue("{hook}_divides")) %>% 
     filter(vpuid == origin$vpuid) %>% 
-    filter(divide_id %in% unique(subset$divide_id)) %>% 
+    filter(divide_id %in% na.omit(unique(subset$divide_id))) %>% 
     read_sf_dataset() %>% 
     st_set_crs(5070)
   
