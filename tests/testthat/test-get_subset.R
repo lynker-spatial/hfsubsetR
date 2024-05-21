@@ -52,7 +52,8 @@ test_that("Terminal point check for id passed", {
                id = id, 
                source = source, 
                type = type, 
-               hf_version = hf_version)
+               hf_version = hf_version,
+               overwrite = TRUE)
 
     subset_flowpaths <- read_sf("subset_test.gpkg", layer = "flowpaths")
     subset_divides <- read_sf("subset_test.gpkg", layer = "divides")
@@ -87,7 +88,8 @@ test_that("Terminal point check for nldi_feature passed", {
     get_subset(outfile = outfile, 
                nldi_feature = nldi_feature, 
                source = source, type = type,
-               hf_version = hf_version)
+               hf_version = hf_version,
+               overwrite = TRUE)
 
     subset_flowpaths <- read_sf("subset_test.gpkg", layer = "flowpaths")
     subset_divides <- read_sf("subset_test.gpkg", layer = "divides")
@@ -107,6 +109,8 @@ test_that("Terminal point check for nldi_feature passed", {
     expect_equal(length(subset_network), 15)
     expect_equal(nrow(subset_network), 3364)
     expect_equal(unique(subset_network$vpuid), "13")
+    
+    unlink(outfile)
 
 })
 
@@ -119,7 +123,8 @@ test_that("Terminal point check for poi_id passed", {
                poi_id = poi_id, 
                source = source, 
                type = type, 
-               hf_version = hf_version)
+               hf_version = hf_version,
+               overwrite = TRUE)
 
     subset_flowpaths <- read_sf("subset_test.gpkg", layer = "flowpaths")
     subset_divides <- read_sf("subset_test.gpkg", layer = "divides")
@@ -139,6 +144,8 @@ test_that("Terminal point check for poi_id passed", {
     expect_equal(length(subset_network), 15)
     expect_equal(nrow(subset_network), 1083)
     expect_equal(unique(subset_network$vpuid), "08")
+    
+    unlink(outfile)
 })
 
 # Test with an hl_uri and network file 
@@ -150,11 +157,12 @@ test_that("Terminal point check for hl_uri passed", {
                hl_uri = hl_uri, 
                source = source, 
                type = type, 
-               hf_version = hf_version)
+               hf_version = hf_version,
+               overwrite = TRUE)
 
     subset_flowpaths <- read_sf("subset_test.gpkg", layer = "flowpaths")
-    subset_divides <- read_sf("subset_test.gpkg", layer = "divides")
-    subset_network <- read_sf("subset_test.gpkg", layer = "network")
+    subset_divides <-  read_sf("subset_test.gpkg", layer = "divides")
+    subset_network <-  read_sf("subset_test.gpkg", layer = "network")
     
     # Flowlines
     expect_equal(length(subset_flowpaths), 10)
@@ -170,5 +178,9 @@ test_that("Terminal point check for hl_uri passed", {
     expect_equal(length(subset_network), 15)
     expect_equal(nrow(subset_network), 130)
     expect_equal(unique(subset_network$vpuid), "01")
+    
+    unlink(outfile)
 
 })
+
+unlink(outfile)
