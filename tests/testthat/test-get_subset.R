@@ -119,7 +119,7 @@ test_that("Terminal point check for poi_id passed", {
                poi_id = poi_id, 
                source = source, 
                type = type, 
-               hf_version = hf_version))
+               hf_version = hf_version)
 
     subset_flowpaths <- read_sf("subset_test.gpkg", layer = "flowpaths")
     subset_divides <- read_sf("subset_test.gpkg", layer = "divides")
