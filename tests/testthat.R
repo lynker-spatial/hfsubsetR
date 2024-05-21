@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/reference/test_package.html#special-files
 
 library(testthat)
-library(hydrofabric)
+library(hfsubsetR)
 
-test_check("hydrofabric")
+test_check("hfsubsetR")
