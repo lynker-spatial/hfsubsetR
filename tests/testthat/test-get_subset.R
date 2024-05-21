@@ -61,18 +61,18 @@ test_that("Terminal point check for id passed", {
     
     # Flowlines
     expect_equal(length(subset_flowpaths), 10)
-    expect_equal(nrow(subset_flowpaths), 2)
+    expect_equal(nrow(subset_flowpaths), 3)
     expect_equal(unique(subset_flowpaths$vpuid), "01")
 
 
     # Divides
     expect_equal(length(subset_divides), 4)
-    expect_equal(nrow(subset_divides), 2)
+    expect_equal(nrow(subset_divides), 3)
     expect_equal(unique(subset_divides$vpuid), "01")
 
     # Network
     expect_equal(length(subset_network), 15)
-    expect_equal(nrow(subset_network), 2)
+    expect_equal(nrow(subset_network), 3)
     expect_equal(unique(subset_network$vpuid), "01")
  
     unlink(outfile)
