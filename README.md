@@ -27,24 +27,39 @@ devtools::install_github("lynker-spatial/hfsubsetR")
 
 ## Remote Access
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic example showing how to access hydrofabric data
+(reference v2.2) upstream of COMID 101 from remote parquet datasets
+hosted by [lynker-spatial](https://staging.lynker-spatial.com/).
 
 ``` r
-## basic example code
+library(hfsubsetR)
+
+get_subset(comid = 101, 
+           source  = "s3://lynker-spatial/hydrofabric",
+           type = 'reference',
+           hf_version = "2.2")
 ```
 
 ## Local
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic example showing how to access the same hydrofabric data
+from local parquet datasets:
 
 ``` r
-## basic example code
+get_subset(comid = 101, source  = "/Volumes/MyBook/conus-hydrofabric")
 ```
 
 ## Hydrolocation Extraction
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic example showing how to access the same hydrolocation
+data from a local parquet dataset. A remote source could be used
+identically:
 
 ``` r
-## basic example code
+# Could use remote source too!
+source <- '/Volumes/MyBook/conus-hydrofabric'
+
+pois <- arrow::open_dataset(glue::glue("{source}/v2.2/conus_hl")) |>
+  dplyr::filter(hl_source == 'GFv20') |>
+  dplyr::collect()
 ```
