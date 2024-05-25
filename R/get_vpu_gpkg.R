@@ -34,6 +34,13 @@ get_vpu_fabric = function(vpu = "01",
     read_sf_dataset() %>% 
     st_set_crs(5070)
   
+  
+    
+    open_dataset("s3://lynker-spatial/hydrofabric/v2.2/reference/conus_divides/") %>% 
+    filter(vpuid == "10L") %>% 
+    read_sf_dataset() %>% 
+    st_set_crs(5070)
+  
   net = open_dataset(glue('{source}/v{hf_version}/{type}/conus_network/')) %>% 
     filter(vpuid == vpu) %>% 
     collect() 

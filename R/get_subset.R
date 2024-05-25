@@ -1,5 +1,42 @@
-na.omit = function(x){
-  x[!is.na(x)]
+na.omit = function(x){ x[!is.na(x)] }
+
+extract_data = function(hook, vpu, ids, lyrs, outfile = NULL){
+  
+  hydrofabric = list()
+  
+  for(i in 1:length(lyrs)){
+    dd = tryCatch({
+      open_dataset(glue("{hook}_{lyrs[i]}")) 
+    }, error = function(e){
+      message(glue("{lyrs[i]} not found"))
+      NULL
+    })
+    
+    if(!is.null(dd)){
+      dd = filter(dd, vpuid == vpu) %>% 
+        filter(if_any(any_of(
+          c('COMID',  'FEATUREID', 'divide_id', 'id', 'toid', "ID")
+        ), ~ . %in% !!ids))
+      
+      if(any(c("geom", "geomtry") %in% names(dd))){
+        tmp = read_sf_dataset(dd)
+      } else {
+        tmp = collect(dd)
+      }
+      
+      if (!is.null(outfile)) {
+        write_sf(tmp, outfile, lyrs[i])
+      } else {
+        hydrofabric[[lyrs[i]]] = t
+      }
+    }
+  }
+  
+  if (!is.null(outfile)) {
+   return(outfile) 
+  } else {
+    return(hydrofabric)
+  }
 }
 
 #' @title Build a hydrofabric subset
@@ -18,7 +55,7 @@ na.omit = function(x){
 #' @importFrom glue glue
 #' @importFrom nhdplusTools discover_nhdplus_id get_sorted
 #' @importFrom arrow open_dataset
-#' @importFrom dplyr select filter collect `%>%` everything
+#' @importFrom dplyr select filter collect `%>%` everything if_any any_of distinct
 #' @importFrom sf st_set_crs write_sf st_sfc st_point st_bbox
 
 get_subset = function(id = NULL, 
@@ -27,7 +64,17 @@ get_subset = function(id = NULL,
                       poi_id = NULL, 
                       nldi_feature = NULL, 
                       xy = NULL, 
+                      lyrs = c('cross_sections',
+                               'divides',
+                               'flowlines',
+                               'flowpath-attributes',
+                               'forcing-weights',
+                               'hydrolocations',
+                               'model-attributes',
+                               'network',
+                               'nexus'),
                       type = "reference",
+                      domain = "conus",
                       hf_version = "2.2", 
                       source = "s3://lynker-spatial/hydrofabric",
                       outfile = NULL, 
@@ -47,7 +94,10 @@ get_subset = function(id = NULL,
     hl_link <- hl_source <- 
     toid <- divide_id <- NULL
   
-  hook      <- glue("{source}/v{hf_version}/{type}/conus")
+  dim(net)
+  dim(collect(open_dataset(net_hook)))
+  
+  hook      <- glue("{source}/v{hf_version}/{type}/{domain}")
   net_hook  <- glue("{hook}_network")
   hl_hook   <- glue("{source}/v{hf_version}/conus_hl")
   
@@ -124,7 +174,8 @@ get_subset = function(id = NULL,
   
   net = open_dataset(net_hook) %>% 
     filter(vpuid == origin$vpuid) %>% 
-    select(id, toid, divide_id, everything()) %>% 
+    select(id, toid) %>% 
+    distinct() %>% 
     collect()
   
   subset = suppressWarnings({
@@ -132,32 +183,16 @@ get_subset = function(id = NULL,
   })
   
   if(origin$topo == "fl-fl"){
-    fl_ids = unique(c(subset$id, subset$toid[-nrow(subset)]))
+    all_ids = na.omit(unique(c(subset$id, subset$toid[-nrow(subset)], subset$divide_id)))
   } else {
-    fl_ids = unique(c(subset$id, subset$toid))
+    all_ids = na.omit(unique(c(subset$id, subset$toid, subset$divide_id)))
   }
   
-  fl = open_dataset(glue("{hook}_flowlines")) %>% 
-    filter(vpuid == origin$vpuid) %>% 
-    filter(id %in% na.omit(fl_ids)) %>% 
-    read_sf_dataset() %>% 
-    st_set_crs(5070)
+  extract_data(hook = hook, 
+               vpu = origin$vpuid, 
+               ids = ids,
+               lyrs = lyrs, 
+               outfile = outfile)  
   
-  div = open_dataset(glue("{hook}_divides")) %>% 
-    filter(vpuid == origin$vpuid) %>% 
-    filter(divide_id %in% na.omit(unique(subset$divide_id))) %>% 
-    read_sf_dataset() %>% 
-    st_set_crs(5070)
-  
-  if(is.null(outfile)){
-    list(divides = div,
-         flowpaths = fl,
-         network = subset)
-  } else {
-    write_sf(fl, outfile, "flowpaths")
-    write_sf(div, outfile, "divides")
-    write_sf(subset, outfile, "network")
-    return(outfile)
-  }
 }
 
