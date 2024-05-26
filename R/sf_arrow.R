@@ -28,7 +28,7 @@ create_metadata <-
     
     for (col in geom_cols) {
       col_meta[[col]] <- list(
-        crs = sf::st_crs(df[[col]])$wkt,
+        crs = sf::st_crs(df[[col]])$Wkt,
         encoding = "WKB",
         bbox = as.numeric(sf::st_bbox(df[[col]]))
       )
