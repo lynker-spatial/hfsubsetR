@@ -2,7 +2,7 @@ na.omit = function(x){ x[!is.na(x)] }
 
 #' Extract Data from Arrow Stores
 #' @inheritParams get_subset
-#' @param hook a local or s3 hydrofabric directory
+#' @param hook a local or s3 hydrofabric direc
 #' @return list or file path
 #' @export
 extract_data = function(hook, vpu, ids, lyrs, outfile = NULL){
