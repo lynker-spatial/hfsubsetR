@@ -5,6 +5,7 @@ na.omit = function(x){ x[!is.na(x)] }
 #' @param hook a local or s3 hydrofabric direc
 #' @return list or file path
 #' @export
+
 extract_data = function(hook, vpu, ids, lyrs, outfile = NULL){
   
   hydrofabric = list()
