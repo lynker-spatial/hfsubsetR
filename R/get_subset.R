@@ -2,7 +2,7 @@ na.omit = function(x){ x[!is.na(x)] }
 
 #' Extract Data from Arrow Stores
 #' @inheritParams get_subset
-#' @param hook a local or s3 hydrofabric direc
+#' @param hook a local or s3 hydrofabric directory
 #' @return list or file path
 #' @export
 
@@ -42,64 +42,6 @@ extract_data = function(hook, vpu, ids, lyrs, outfile = NULL){
    return(outfile) 
   } else {
     return(hydrofabric)
-  }
-}
-
-#' Find Origin from ID
-#' @param network 
-#' @inheritParams get_subset
-#' @return data.frame
-#' @export
-
-findOrigin = function(network, 
-                      id = NULL, 
-                      comid = NULL,  
-                      hl_uri = NULL, 
-                      poi_id = NULL, 
-                      nldi_feature = NULL, 
-                      xy = NULL) {
-  
-  if(!is.null(xy)) {
-    xy[1:2] <- as.numeric(xy[1:2])
-    comid   <- discover_nhdplus_id(point = st_sfc(st_point(c(xy[1], xy[2])), crs = 4326))
-  }
-  
-  # nldi_feature = list(featureSource = "nwissite", featureID = "USGS-08279500")
-  if (!is.null(nldi_feature)) {
-    comid <- discover_nhdplus_id(nldi_feature = nldi_feature)
-  }
-  
-  con = open_dataset(network)
-  #poi_id = 74719
-  if (!is.null(poi_id)) {
-    obj <- filter(con, poi_id == !!poi_id)
-  }
-  
-  #hl_uri = 'WBIn-120049871'
-  if (!is.null(hl_uri)) {
-    obj <- filter(con, hl_uri == !!hl_uri) 
-  }
-  
-  #comid = 101
-  if (!is.null(comid)) {
-    obj <- filter(con, hf_id == comid) 
-  }
-  
-  if (!is.null(id)) {
-    obj <- filter(con, id == !!id)
-  }
-  
-  origin = select(obj, id, vpuid, topo) %>%
-    distinct() %>% 
-    collect()
-  
-  if (nrow(origin) == 0) {
-    stop("No origin found")
-  } else if (nrow(origin) > 1) {
-    print(origin)
-    stop("Multiple Origins Found")
-  } else {
-    return(origin)
   }
 }
 
