@@ -1,5 +1,10 @@
 na.omit = function(x){ x[!is.na(x)] }
 
+#' Extract Data from Arrow Stores
+#' @inheritParams get_subset
+#' @param hook a local or s3 hydrofabric directory
+#' @return list or file path
+#' @export
 extract_data = function(hook, vpu, ids, lyrs, outfile = NULL){
   
   hydrofabric = list()
@@ -39,6 +44,64 @@ extract_data = function(hook, vpu, ids, lyrs, outfile = NULL){
   }
 }
 
+#' Find Origin from ID
+#' @param network 
+#' @inheritParams get_subset
+#' @return data.frame
+#' @export
+
+findOrigin = function(network, 
+                      id = NULL, 
+                      comid = NULL,  
+                      hl_uri = NULL, 
+                      poi_id = NULL, 
+                      nldi_feature = NULL, 
+                      xy = NULL) {
+  
+  if(!is.null(xy)) {
+    xy[1:2] <- as.numeric(xy[1:2])
+    comid   <- discover_nhdplus_id(point = st_sfc(st_point(c(xy[1], xy[2])), crs = 4326))
+  }
+  
+  # nldi_feature = list(featureSource = "nwissite", featureID = "USGS-08279500")
+  if (!is.null(nldi_feature)) {
+    comid <- discover_nhdplus_id(nldi_feature = nldi_feature)
+  }
+  
+  con = open_dataset(network)
+  #poi_id = 74719
+  if (!is.null(poi_id)) {
+    obj <- filter(con, poi_id == !!poi_id)
+  }
+  
+  #hl_uri = 'WBIn-120049871'
+  if (!is.null(hl_uri)) {
+    obj <- filter(con, hl_uri == !!hl_uri) 
+  }
+  
+  #comid = 101
+  if (!is.null(comid)) {
+    obj <- filter(con, hf_id == comid) 
+  }
+  
+  if (!is.null(id)) {
+    obj <- filter(con, id == !!id)
+  }
+  
+  origin = select(obj, id, vpuid, topo) %>%
+    distinct() %>% 
+    collect()
+  
+  if (nrow(origin) == 0) {
+    stop("No origin found")
+  } else if (nrow(origin) > 1) {
+    print(origin)
+    stop("Multiple Origins Found")
+  } else {
+    return(origin)
+  }
+}
+
 #' @title Build a hydrofabric subset
 #' @param id hydrofabric id. datatype: string / vector of strings e.g., 'wb-10026' or c('wb-10026', 'wb-10355') 
 #' @param comid NHDPlusV2 COMID. datatype: int / vector of int e.g., 61297116 or c(61297116 , 6129261) 
@@ -50,6 +113,8 @@ extract_data = function(hook, vpu, ids, lyrs, outfile = NULL){
 #' @param hf_version hydrofabric version
 #' @param source hydrofabric source (local root directory or s3 link)
 #' @param outfile If gpkg file path is provided, data will be written to a file.
+#' @param lyrs layers to extract
+#' @param domain hydrofabric domain
 #' @param overwrite overwrite existing outfile file path. Default is FALSE
 #' @export
 #' @importFrom glue glue
@@ -73,10 +138,10 @@ get_subset = function(id = NULL,
                                'model-attributes',
                                'network',
                                'nexus'),
+                      source = "s3://lynker-spatial/hydrofabric",
+                      hf_version = "2.2", 
                       type = "reference",
                       domain = "conus",
-                      hf_version = "2.2", 
-                      source = "s3://lynker-spatial/hydrofabric",
                       outfile = NULL, 
                       overwrite = FALSE) {
   
@@ -89,88 +154,16 @@ get_subset = function(id = NULL,
     }
   }
 
-  hf_id <-  vpuid <- 
-    topo <- hl_reference <- 
-    hl_link <- hl_source <- 
-    toid <- divide_id <- NULL
-  
-  dim(net)
-  dim(collect(open_dataset(net_hook)))
-  
   hook      <- glue("{source}/v{hf_version}/{type}/{domain}")
   net_hook  <- glue("{hook}_network")
-  hl_hook   <- glue("{source}/v{hf_version}/conus_hl")
   
-  #xy = c(-105.0825, 40.58897)
-  if(!is.null(xy)) {
-    xy[1:2] <- as.numeric(xy[1:2])
-    comid   <- discover_nhdplus_id(point = st_sfc(st_point(c(xy[1], xy[2])), crs = 4326))
-    origin  <- open_dataset(net_hook) %>% 
-      filter(hf_id == comid) %>% 
-      select(id, vpuid, topo) %>% 
-      collect()
-  }
-  
-  # nldi_feature = list(featureSource = "nwissite", 
-  #                     featureID = "USGS-08279500")
-  if(!is.null(nldi_feature)){
-    comid <- discover_nhdplus_id(nldi_feature = nldi_feature)
-    origin <- open_dataset(net_hook) %>% 
-      filter(hf_id == comid) %>% 
-      select(id, vpuid, topo) %>% 
-      collect()
-  }
-  
-  #poi_id = 74719
-  if(!is.null(poi_id)){
-    hl <- open_dataset(hl_hook) %>% 
-      filter(poi_id == !!poi_id) %>% 
-      select(hl_source, comid = hf_id, poi_id, vpuid) %>% 
-      collect()
-    
-    origin <- open_dataset(net_hook) %>% 
-      filter(vpuid == hl$vpuid[1], hf_id == hl$comid[1]) %>% 
-      select(id, vpuid, topo) %>% 
-      collect()
-  }
-  
-  #hl_uri = 'WBIn-120049871'
-  if(!is.null(hl_uri)){
-    
-    input <- strsplit(hl_uri, "-")[[1]]
-    
-    hl <-  open_dataset(hl_hook) %>% 
-      filter(hl_reference == input[1], hl_link == input[2]) %>% 
-      select(comid = hf_id, poi_id, vpuid, hl_source, hl_reference, hl_link) %>%
-      collect()
-    
-    origin <- open_dataset(net_hook) %>% 
-      filter(vpuid == hl$vpuid, hf_id == hl$comid) %>% 
-      select(id, vpuid, topo) %>% 
-      collect()
-  }
-  
-  #comid = 101
-  if(!is.null(comid)){
-    origin <- open_dataset(net_hook) %>% 
-      filter(hf_id == comid) %>% 
-      select(id, vpuid, topo) %>% 
-      collect()
-  }
-  
-  if(!is.null(id)){
-    origin <- open_dataset(net_hook) %>% 
-      filter(id == !!id) %>% 
-      select(id, vpuid, topo) %>% 
-      collect()
-  }
-  
-  if(nrow(origin) == 0){
-    stop("No origin found")
-  } else if(nrow(origin) > 1){
-    print(origin)
-    stop("Multiple Origins Found")
-  } 
+  origin = findOrigin(net_hook,
+                      id = id, 
+                      comid = comid,  
+                      hl_uri = hl_uri, 
+                      poi_id = poi_id, 
+                      nldi_feature = nldi_feature, 
+                      xy = xy)
   
   net = open_dataset(net_hook) %>% 
     filter(vpuid == origin$vpuid) %>% 
@@ -178,19 +171,17 @@ get_subset = function(id = NULL,
     distinct() %>% 
     collect()
   
-  subset = suppressWarnings({
-    nhdplusTools::get_sorted(net, outlets = origin$id)
-  })
+  subset = suppressWarnings({ get_sorted(net, outlets = origin$id) })
   
   if(origin$topo == "fl-fl"){
-    all_ids = na.omit(unique(c(subset$id, subset$toid[-nrow(subset)], subset$divide_id)))
+    all_ids = na.omit(unique(c(subset$id, subset$toid[-nrow(subset)])))
   } else {
-    all_ids = na.omit(unique(c(subset$id, subset$toid, subset$divide_id)))
+    all_ids = na.omit(unique(c(subset$id, subset$toid)))
   }
   
   extract_data(hook = hook, 
                vpu = origin$vpuid, 
-               ids = ids,
+               ids = all_ids,
                lyrs = lyrs, 
                outfile = outfile)  
   
