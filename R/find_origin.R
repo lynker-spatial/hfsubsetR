@@ -12,6 +12,7 @@
 #' @inheritParams get_subset
 #' @return data.frame
 #' @export
+
 findOrigin <- function(
   network,
   id = NULL,
@@ -48,9 +49,10 @@ findOrigin <- function(
 
   origin <-
     findOriginQuery(.query, network) |>
-    dplyr::select(id, vpuid, topo) |>
+    dplyr::select(id, vpuid, topo, hydroseq) |>
     dplyr::distinct() |>
-    dplyr::collect()
+    dplyr::collect() |>
+    dplyr::slice_min(hydroseq, with_ties = TRUE) 
 
   if (nrow(origin) == 0) {
     stop("No origin found")

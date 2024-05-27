@@ -33,7 +33,7 @@ extract_data = function(hook, vpu, ids, lyrs, outfile = NULL){
       if (!is.null(outfile)) {
         write_sf(tmp, outfile, lyrs[i])
       } else {
-        hydrofabric[[lyrs[i]]] = t
+        hydrofabric[[lyrs[i]]] = tmp
       }
     }
   }
@@ -72,13 +72,8 @@ get_subset = function(id = NULL,
                       poi_id = NULL, 
                       nldi_feature = NULL, 
                       xy = NULL, 
-                      lyrs = c('cross_sections',
-                               'divides',
+                      lyrs = c('divides',
                                'flowlines',
-                               'flowpath-attributes',
-                               'forcing-weights',
-                               'hydrolocations',
-                               'model-attributes',
                                'network',
                                'nexus'),
                       source = "s3://lynker-spatial/hydrofabric",
