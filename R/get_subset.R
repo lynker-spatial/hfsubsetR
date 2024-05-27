@@ -105,17 +105,17 @@ get_subset = function(id = NULL,
   
   net = open_dataset(net_hook) %>% 
     filter(vpuid == origin$vpuid) %>% 
-    select(id, toid) %>% 
+    select(any_of(c('id', 'toid', 'divide_id'))) %>% 
     distinct() %>% 
     collect()
   
   subset = suppressWarnings({ get_sorted(net, outlets = origin$id) })
   
   if(origin$topo == "fl-fl"){
-    all_ids = na.omit(unique(c(subset$id, subset$toid[-nrow(subset)])))
-  } else {
-    all_ids = na.omit(unique(c(subset$id, subset$toid)))
-  }
+    subset$toid[nrow(subset)] <- NA
+  } 
+  
+  all_ids = na.omit(unique(as.vector(as.matrix(subset))))
   
   extract_data(hook = hook, 
                vpu = origin$vpuid, 
