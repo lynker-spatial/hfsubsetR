@@ -6,7 +6,7 @@ na.omit = function(x){ x[!is.na(x)] }
 #' @return list or file path
 #' @export
 
-extract_data = function(hook, vpu, ids, lyrs, outfile = NULL){
+extract_arrow_data = function(hook, vpu, ids, lyrs, outfile = NULL){
   
   hydrofabric = list()
   
@@ -19,10 +19,21 @@ extract_data = function(hook, vpu, ids, lyrs, outfile = NULL){
     })
     
     if(!is.null(dd)){
-      dd = filter(dd, vpuid == vpu) %>% 
-        filter(if_any(any_of(
-          c('COMID',  'FEATUREID', 'divide_id', 'id', 'toid', "ID")
-        ), ~ . %in% !!ids))
+ 
+      dd   <- dd |>
+        filter(vpuid == vpu)
+      
+      vars <- c('COMID',  'FEATUREID', 'divide_id', "link", "to", 'id', 'toid', "ID", "poi_id")
+      
+      if ("poi_id" %in% names(dd)) {
+        dd = dd %>%
+          dplyr::mutate(poi_id = as.character(poi_id)) |>
+          dplyr::filter(if_any(any_of(!!vars), ~ . %in% !!ids))
+      } else {
+        dd = dd %>%
+          filter(if_any(any_of(!!vars), ~ . %in% !!ids))
+      }
+
       
       if(any(c("geom", "geomtry") %in% names(dd))){
         tmp = read_sf_dataset(dd)
@@ -45,6 +56,65 @@ extract_data = function(hook, vpu, ids, lyrs, outfile = NULL){
   }
 }
 
+
+#' Extract Data from Arrow Stores
+#' @inheritParams get_subset
+#' @param hook a local or s3 hydrofabric directory
+#' @return list or file path
+#' @export
+
+extract_gpkg_data = function(gpkg, vpu, ids, lyrs, outfile = NULL){
+  
+  hydrofabric = list()
+  
+  for(i in 1:length(lyrs)){
+    dd = tryCatch({
+      as_sqlite(gpkg, lyrs[i])
+    }, error = function(e){
+      message(glue("{lyrs[i]} not found"))
+      NULL
+    })
+    
+    if(!is.null(dd)){
+      
+      dd   <- dd |>
+        filter(vpuid == vpu)
+      
+      vars <- c('COMID',  'FEATUREID', 'divide_id', "link", "to", 'id', 'toid', "ID", "poi_id")
+      
+      if ("poi_id" %in% colnames(dd)) {
+        dd = dd %>%
+          dplyr::mutate(poi_id = as.character(poi_id)) |>
+          dplyr::filter(if_any(any_of(!!vars), ~ . %in% !!ids))
+      } else {
+        dd = dd %>%
+          filter(if_any(any_of(!!vars), ~ . %in% !!ids))
+      }
+      
+      
+      if(any(c("geom", "geomtry") %in% colnames(dd))){
+        tmp = read_sf_dataset_sqlite(dd)
+      } else {
+        tmp = collect(dd)
+      }
+      
+      if (!is.null(outfile)) {
+        write_sf(tmp, outfile, lyrs[i])
+      } else {
+        hydrofabric[[lyrs[i]]] = tmp
+      }
+    }
+  }
+  
+  if (!is.null(outfile)) {
+    return(outfile) 
+  } else {
+    return(hydrofabric)
+  }
+}
+
+
+
 #' @title Build a hydrofabric subset
 #' @param id hydrofabric id. datatype: string / vector of strings e.g., 'wb-10026' or c('wb-10026', 'wb-10355') 
 #' @param comid NHDPlusV2 COMID. datatype: int / vector of int e.g., 61297116 or c(61297116 , 6129261) 
@@ -63,22 +133,23 @@ extract_data = function(hook, vpu, ids, lyrs, outfile = NULL){
 #' @importFrom glue glue
 #' @importFrom nhdplusTools discover_nhdplus_id get_sorted
 #' @importFrom arrow open_dataset
-#' @importFrom dplyr select filter collect `%>%` everything if_any any_of distinct
+#' @importFrom dplyr select filter collect `%>%` everything if_any any_of distinct rename
 #' @importFrom sf st_set_crs write_sf st_sfc st_point st_bbox
 
-get_subset = function(id = NULL, 
-                      comid = NULL,  
-                      hl_uri = NULL, 
-                      poi_id = NULL, 
+get_subset = function(id           = NULL, 
+                      comid        = NULL,  
+                      hl_uri       = NULL, 
+                      poi_id       = NULL, 
                       nldi_feature = NULL, 
-                      xy = NULL, 
+                      xy           = NULL, 
                       lyrs = c('divides',
-                               'flowlines',
+                               'flowpaths',
                                'network',
                                'nexus'),
+                      gpkg = NULL,
                       source = "s3://lynker-spatial/hydrofabric",
                       hf_version = "2.2", 
-                      type = "reference",
+                      type = "nextgen",
                       domain = "conus",
                       outfile = NULL, 
                       overwrite = FALSE) {
@@ -91,37 +162,62 @@ get_subset = function(id = NULL,
       return(outfile)
     }
   }
-
+  
   hook      <- glue("{source}/v{hf_version}/{type}/{domain}")
-  net_hook  <- glue("{hook}_network")
+
+  if(!is.null(gpkg)){
+    
+    origin <- findOriginGPKG(gpkg,
+                            id = id, 
+                            comid = comid,  
+                            hl_uri = hl_uri, 
+                            poi_id = poi_id, 
+                            nldi_feature = nldi_feature, 
+                            xy = xy)
+    
+    net <- as_sqlite(gpkg, "network") %>% 
+      filter(vpuid == origin$vpuid) %>% 
+      select(any_of(c('id', 'toid', 'divide_id', "poi_id"))) %>% 
+      distinct() %>% 
+      collect()
+    
+  } else {
+    
+    origin <- findOrigin(network = glue("{hook}_network"),
+                        id = id, 
+                        comid = comid,  
+                        hl_uri = hl_uri, 
+                        poi_id = poi_id, 
+                        nldi_feature = nldi_feature, 
+                        xy = xy)
   
-  origin = findOrigin(net_hook,
-                      id = id, 
-                      comid = comid,  
-                      hl_uri = hl_uri, 
-                      poi_id = poi_id, 
-                      nldi_feature = nldi_feature, 
-                      xy = xy)
+    net = open_dataset(glue("{hook}_network")) %>% 
+      filter(vpuid == origin$vpuid) %>% 
+      select(any_of(c('id', 'toid', 'divide_id', "poi_id"))) %>% 
+      distinct() %>% 
+      collect()
+    
+  }
+
+  subset <- suppressWarnings({ get_sorted(net, outlets = origin$toid) })
+
+  subset$toid[nrow(subset)] <- NA
   
-  net = open_dataset(net_hook) %>% 
-    filter(vpuid == origin$vpuid) %>% 
-    select(any_of(c('id', 'toid', 'divide_id'))) %>% 
-    distinct() %>% 
-    collect()
+  all_ids <- na.omit(unique(as.vector(as.matrix(subset))))
   
-  subset = suppressWarnings({ get_sorted(net, outlets = origin$id) })
-  
-  if(origin$topo == "fl-fl"){
-    subset$toid[nrow(subset)] <- NA
-  } 
-  
-  all_ids = na.omit(unique(as.vector(as.matrix(subset))))
-  
-  extract_data(hook = hook, 
-               vpu = origin$vpuid, 
-               ids = all_ids,
-               lyrs = lyrs, 
-               outfile = outfile)  
+  if(!is.null(gpkg)){
+    extract_gpkg_data(gpkg    = gpkg, 
+                      vpu     = origin$vpuid, 
+                      ids     = all_ids,
+                      lyrs    = lyrs, 
+                      outfile = outfile) 
+  } else {
+    extract_arrow_data(hook = hook, 
+                       vpu = origin$vpuid, 
+                       ids = all_ids,
+                       lyrs = lyrs, 
+                       outfile = outfile) 
+  }
   
 }
 

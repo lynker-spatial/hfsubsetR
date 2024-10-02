@@ -1,59 +1,50 @@
-#' @keywords internal
-.makeOriginQueryClass <- function(data, cls) {
-  if (is.null(data)) {
-    return(NULL)
-  }
-
-  structure(data, class = c(cls, class(data)))
-}
-
 #' Find Origin From ID
 #' @param network a URI to a network-formatted Arrow dataset
 #' @inheritParams get_subset
 #' @return data.frame
 #' @export
 
-findOrigin <- function(
-  network,
-  id = NULL,
-  comid = NULL,
-  hl_uri = NULL,
-  poi_id = NULL,
-  nldi_feature = NULL,
-  xy = NULL
+findOriginGPKG <- function(
+    gpkg,
+    id = NULL,
+    comid = NULL,
+    hl_uri = NULL,
+    poi_id = NULL,
+    nldi_feature = NULL,
+    xy = NULL
 ) {
   # Capture arguments
   .args <- c(as.list(environment()))
-
+  
   # Pop `network` off arguments
   .args <- .args[seq.int(2, length(.args), 1)]
-
+  
   # Get all non-NULL arguments
   .args <- .args[!vapply(.args, is.null, logical(1))]
-
+  
   if (length(.args) == 0) {
     stop("at least one argument other than `network` is required.")
   }
-
+  
   if (length(.args) > 1) {
     stop(paste(
       "only one identifier type should be passed, but received",
       paste0("`", names(.args), "`", collapse = "/")
     ))
   }
-
+  
   .query <- .makeOriginQueryClass(
     .args[[1]],
     ifelse(names(.args) == "id", "hf_id", names(.args))
   )
-
+  
   origin <-
-    findOriginQuery(.query, network) |> 
+    findOriginQueryGPKG(.query, gpkg) |> 
     dplyr::select(id, toid, vpuid, topo, hydroseq) |>
     dplyr::distinct() |>
-    dplyr::collect() |> 
+    dplyr::collect() |>
     dplyr::slice_min(hydroseq, with_ties = TRUE) 
-
+  
   if (nrow(origin) == 0) {
     stop("No origin found")
   } else if (nrow(origin) > 1) {
@@ -67,18 +58,18 @@ findOrigin <- function(
 #' S3 method for dispatching on query type
 #' @return Arrow Table/Deferred connection
 #' @keywords internal
-findOriginQuery <- function(id, network, ...) {
-  if (!inherits(network, "character")) {
+findOriginQueryGPKG <- function(id, gpkg, ...) {
+  if (!inherits(gpkg, "character")) {
     stop("`network` must be a path/URI")
   }
-
-  UseMethod("findOriginQuery")
+  
+  UseMethod("findOriginQueryGPKG")
 }
 
 
 #' @method findOriginQuery default
 #' @keywords internal
-findOriginQuery.default <- function(id, network, ...) {
+findOriginQueryGPKG.default <- function(id, gpkg, ...) {
   stop(paste(
     "identifier of class",
     paste0("`", class(id), "`", collapse = "/"),
@@ -89,57 +80,57 @@ findOriginQuery.default <- function(id, network, ...) {
 
 #' @method findOriginQuery hf_id
 #' @keywords internal
-findOriginQuery.hf_id <- function(id, network, ...) {
-  arrow::open_dataset(network) |>
+findOriginQueryGPKG.hf_id <- function(id, gpkg, ...) {
+  as_sqlite(gpkg, "network") |>
     dplyr::filter(id == !!id)
 }
 
 
 #' @method findOriginQuery comid
 #' @keywords internal
-findOriginQuery.comid <- function(comid, network, ...) {
-  arrow::open_dataset(network) |>
+findOriginQueryGPKG.comid <- function(comid, gpkg, ...) {
+  as_sqlite(gpkg, "network") |>
     dplyr::filter(hf_id == !!comid)
 }
 
 
 #' @method findOriginQuery hl_uri
 #' @keywords internal
-findOriginQuery.hl_uri <- function(hl_uri, network, ...) {
-  arrow::open_dataset(network) |>
-    dplyr::filter(hl_uri == !!hl_uri)
+findOriginQueryGPKG.hl_uri <- function(hl_uri, gpkg, ...) {
+  as_sqlite(gpkg, "network") |>
+    dplyr::filter(hl_uri == !!hl_uri) 
 }
 
 
 #' @method findOriginQuery poi_id
 #' @keywords internal
-findOriginQuery.poi_id <- function(poi_id, network, ...) {
-  arrow::open_dataset(network) |>
+findOriginQueryGPKG.poi_id <- function(poi_id, gpkg, ...) {
+  as_sqlite(gpkg, "network") |>
     dplyr::filter(poi_id == !!poi_id)
 }
 
 
 #' @method findOriginQuery nldi_feature
 #' @keywords internal
-findOriginQuery.nldi_feature <- function(nldi_feature, network, ...) {
+findOriginQueryGPKG.nldi_feature <- function(nldi_feature, gpkg, ...) {
   .Class <- "comid"
   nldi_feature <-
     nhdplusTools::discover_nhdplus_id(nldi_feature = nldi_feature) |>
     .makeOriginQueryClass("comid")
-
+  
   NextMethod()
 }
 
 
 #' @method findOriginQuery xy
 #' @keywords internal
-findOriginQuery.xy <- function(xy, network, ...) {
+findOriginQueryGPKG.xy <- function(xy, gpkg, ...) {
   .Class <- "comid"
   xy <-
     sf::st_point(xy) |>
     sf::st_sfc(crs = 4326) |>
     nhdplusTools::discover_nhdplus_id(point = _) |>
     .makeOriginQueryClass("comid")
-
+  
   NextMethod()
 }
