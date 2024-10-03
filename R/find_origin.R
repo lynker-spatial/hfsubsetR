@@ -23,13 +23,12 @@ findOrigin <- function(
   xy = NULL
 ) {
   
-  hf_id <- hydroseq <- poi_id <- toid <- topo <- vpuid <- NULL
   # Capture arguments
   .args <- c(as.list(environment()))
 
   # Pop `network` off arguments
   .args <- .args[seq.int(2, length(.args), 1)]
-
+  
   # Get all non-NULL arguments
   .args <- .args[!vapply(.args, is.null, logical(1))]
 
@@ -43,7 +42,9 @@ findOrigin <- function(
       paste0("`", names(.args), "`", collapse = "/")
     ))
   }
-
+  
+  hf_id <- hydroseq <- poi_id <- toid <- topo <- vpuid <- NULL
+  
   .query <- .makeOriginQueryClass(
     .args[[1]],
     ifelse(names(.args) == "id", "hf_id", names(.args))
