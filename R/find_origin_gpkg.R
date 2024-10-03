@@ -1,5 +1,5 @@
 #' Find Origin From ID
-#' @param network a URI to a network-formatted Arrow dataset
+#' @param gpkg a local geopackages file path
 #' @inheritParams get_subset
 #' @return data.frame
 #' @export
@@ -13,6 +13,8 @@ findOriginGPKG <- function(
     nldi_feature = NULL,
     xy = NULL
 ) {
+  
+  hf_id <- hydroseq <- poi_id <- toid <- topo <- vpuid <- NULL
   # Capture arguments
   .args <- c(as.list(environment()))
   
@@ -56,7 +58,7 @@ findOriginGPKG <- function(
 
 
 #' S3 method for dispatching on query type
-#' @return Arrow Table/Deferred connection
+#' @return SQLite connection
 #' @keywords internal
 findOriginQueryGPKG <- function(id, gpkg, ...) {
   if (!inherits(gpkg, "character")) {
@@ -89,6 +91,7 @@ findOriginQueryGPKG.hf_id <- function(id, gpkg, ...) {
 #' @method findOriginQuery comid
 #' @keywords internal
 findOriginQueryGPKG.comid <- function(comid, gpkg, ...) {
+  hf_id <- NULL
   as_sqlite(gpkg, "network") |>
     dplyr::filter(hf_id == !!comid)
 }

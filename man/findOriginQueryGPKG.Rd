@@ -7,7 +7,7 @@
 findOriginQueryGPKG(id, gpkg, ...)
 }
 \value{
-Arrow Table/Deferred connection
+SQLite connection
 }
 \description{
 S3 method for dispatching on query type

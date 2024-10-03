@@ -1,6 +1,11 @@
 #x network  <- '/Users/mjohnson/hydrofabric/v2.2/reference/conus_network'
 network  <- 's3://lynker-spatial/hydrofabric/v2.2/reference/conus_network'
 
+test =  arrow %>% 
+  filter(hl_uri == "gages-06752260") %>% 
+  collect()
+
+
 test_that("Test ID", {
   ido = findOrigin(network, id = test$id)
   expect_equal(ido$id, 2899997)
@@ -45,8 +50,6 @@ test_that("Test XY", {
 
 #x network  <- '/Users/mjohnson/hydrofabric/v2.2/reference/conus_network'
 gpkg  <- conus_gpkg
-
-read_sf(ne)
 
 test =  as_sqlite(gpkg, "network") %>% 
   filter(hl_uri == "gages-06752260") %>% 

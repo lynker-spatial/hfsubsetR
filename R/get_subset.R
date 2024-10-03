@@ -1,13 +1,17 @@
 na.omit = function(x){ x[!is.na(x)] }
 
 #' Extract Data from Arrow Stores
-#' @inheritParams get_subset
 #' @param hook a local or s3 hydrofabric directory
+#' @param vpu an optional VPU to quicken search
+#' @param ids all identifiers to extract
+#' @param lyrs hydrofabric layers to subset
+#' @param outfile a path to write resulting geopackage
 #' @return list or file path
 #' @export
 
 extract_arrow_data = function(hook, vpu, ids, lyrs, outfile = NULL){
   
+  vpuid <- poi_id <-  NULL
   hydrofabric = list()
   
   for(i in 1:length(lyrs)){
@@ -58,13 +62,17 @@ extract_arrow_data = function(hook, vpu, ids, lyrs, outfile = NULL){
 
 
 #' Extract Data from Arrow Stores
-#' @inheritParams get_subset
-#' @param hook a local or s3 hydrofabric directory
+#' @param gpkg a local gpkg file
+#' @param vpu an optional VPU to quicken search
+#' @param ids all identifiers to extract
+#' @param lyrs hydrofabric layers to subset
+#' @param outfile a path to write resulting geopackage
 #' @return list or file path
 #' @export
 
 extract_gpkg_data = function(gpkg, vpu, ids, lyrs, outfile = NULL){
   
+  vpuid <- poi_id <-  NULL
   hydrofabric = list()
   
   for(i in 1:length(lyrs)){
@@ -114,7 +122,6 @@ extract_gpkg_data = function(gpkg, vpu, ids, lyrs, outfile = NULL){
 }
 
 
-
 #' @title Build a hydrofabric subset
 #' @param id hydrofabric id. datatype: string / vector of strings e.g., 'wb-10026' or c('wb-10026', 'wb-10355') 
 #' @param comid NHDPlusV2 COMID. datatype: int / vector of int e.g., 61297116 or c(61297116 , 6129261) 
@@ -125,6 +132,7 @@ extract_gpkg_data = function(gpkg, vpu, ids, lyrs, outfile = NULL){
 #' @param type hydrofabric type
 #' @param hf_version hydrofabric version
 #' @param source hydrofabric source (local root directory or s3 link)
+#' @param gpkg a local gpkg file
 #' @param outfile If gpkg file path is provided, data will be written to a file.
 #' @param lyrs layers to extract
 #' @param domain hydrofabric domain
@@ -163,6 +171,7 @@ get_subset = function(id           = NULL,
     }
   }
   
+  hf_id <- vpuid <-  NULL
   hook      <- glue("{source}/v{hf_version}/{type}/{domain}")
 
   if(!is.null(gpkg)){

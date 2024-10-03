@@ -15,11 +15,15 @@ Depends:
     R (>= 4.2)
 Imports: 
     arrow,
+    DBI,
+    RSQLite,
     dplyr,
     glue,
     jsonlite,
     nhdplusTools,
     sf
+Suggests:
+    testthat
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true

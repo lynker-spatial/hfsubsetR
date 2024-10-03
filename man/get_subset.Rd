@@ -11,7 +11,7 @@ get_subset(
   poi_id = NULL,
   nldi_feature = NULL,
   xy = NULL,
-  lyrs = c("divides", "flowlines", "network", "nexus"),
+  lyrs = c("divides", "flowpaths", "network", "nexus"),
   gpkg = NULL,
   source = "s3://lynker-spatial/hydrofabric",
   hf_version = "2.2",
@@ -35,6 +35,8 @@ get_subset(
 \item{xy}{Location given as vector of XY in EPSG:4326 (longitude, latitude, crs)}
 
 \item{lyrs}{layers to extract}
+
+\item{gpkg}{a local gpkg file}
 
 \item{source}{hydrofabric source (local root directory or s3 link)}
 

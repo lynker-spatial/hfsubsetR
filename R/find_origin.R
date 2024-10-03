@@ -22,6 +22,8 @@ findOrigin <- function(
   nldi_feature = NULL,
   xy = NULL
 ) {
+  
+  hf_id <- hydroseq <- poi_id <- toid <- topo <- vpuid <- NULL
   # Capture arguments
   .args <- c(as.list(environment()))
 
@@ -98,6 +100,7 @@ findOriginQuery.hf_id <- function(id, network, ...) {
 #' @method findOriginQuery comid
 #' @keywords internal
 findOriginQuery.comid <- function(comid, network, ...) {
+  hf_id <- NULL
   arrow::open_dataset(network) |>
     dplyr::filter(hf_id == !!comid)
 }

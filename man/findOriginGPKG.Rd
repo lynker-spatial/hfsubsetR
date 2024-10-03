@@ -15,6 +15,8 @@ findOriginGPKG(
 )
 }
 \arguments{
+\item{gpkg}{a local geopackages file path}
+
 \item{id}{hydrofabric id. datatype: string / vector of strings e.g., 'wb-10026' or c('wb-10026', 'wb-10355')}
 
 \item{comid}{NHDPlusV2 COMID. datatype: int / vector of int e.g., 61297116 or c(61297116 , 6129261)}
@@ -26,8 +28,6 @@ findOriginGPKG(
 \item{nldi_feature}{list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'. datatype: a url e.g., 'https://labs.waterdata.usgs.gov/api/nldi/linked-data/census2020-nhdpv2'}
 
 \item{xy}{Location given as vector of XY in EPSG:4326 (longitude, latitude, crs)}
-
-\item{network}{a URI to a network-formatted Arrow dataset}
 }
 \value{
 data.frame

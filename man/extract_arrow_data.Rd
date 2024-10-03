@@ -9,9 +9,13 @@ extract_arrow_data(hook, vpu, ids, lyrs, outfile = NULL)
 \arguments{
 \item{hook}{a local or s3 hydrofabric directory}
 
-\item{lyrs}{layers to extract}
+\item{vpu}{an optional VPU to quicken search}
 
-\item{outfile}{If gpkg file path is provided, data will be written to a file.}
+\item{ids}{all identifiers to extract}
+
+\item{lyrs}{hydrofabric layers to subset}
+
+\item{outfile}{a path to write resulting geopackage}
 }
 \value{
 list or file path
