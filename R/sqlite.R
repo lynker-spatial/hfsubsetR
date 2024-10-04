@@ -39,17 +39,22 @@ as_sqlite = function(gpkg, lyr= NULL, ignore = "gpkg_|rtree_|sqlite_"){
 
 read_sf_dataset_sqlite = function(tbl){
   
-  srs = dbConnect(RSQLite::SQLite(), tbl$src$con@dbname) %>% 
+  con =  dbConnect(RSQLite::SQLite(), tbl$src$con@dbname)
+  srs = con %>% 
     tbl("gpkg_spatial_ref_sys") %>% 
     collect() %>% 
     slice_tail(n = 1)
   
+  dbDisconnect(con)
+  
   d = collect(tbl)
   
   if(any(c("geom", "geometry") %in% names(d))){
-    st_as_sf(d, crs = srs$definition)
+    d = st_as_sf(d, crs = srs$definition)
   } else {
     warning("no simple features geometry column present")
     d
   }
+  
+  return(d)
 }
