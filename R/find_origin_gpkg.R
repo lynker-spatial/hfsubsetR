@@ -83,7 +83,7 @@ findOriginQueryGPKG.default <- function(id, gpkg, ...) {
 #' @method findOriginQuery hf_id
 #' @keywords internal
 findOriginQueryGPKG.hf_id <- function(id, gpkg, ...) {
-  as_sqlite(gpkg, "network") |>
+  as_ogr(gpkg, "network") |>
     dplyr::filter(id == !!id)
 }
 
@@ -92,7 +92,7 @@ findOriginQueryGPKG.hf_id <- function(id, gpkg, ...) {
 #' @keywords internal
 findOriginQueryGPKG.comid <- function(comid, gpkg, ...) {
   hf_id <- NULL
-  as_sqlite(gpkg, "network") |>
+  as_ogr(gpkg, "network") |>
     dplyr::filter(hf_id == !!comid)
 }
 
@@ -100,7 +100,7 @@ findOriginQueryGPKG.comid <- function(comid, gpkg, ...) {
 #' @method findOriginQuery hl_uri
 #' @keywords internal
 findOriginQueryGPKG.hl_uri <- function(hl_uri, gpkg, ...) {
-  as_sqlite(gpkg, "network") |>
+  as_ogr(gpkg, "network") |>
     dplyr::filter(hl_uri == !!hl_uri) 
 }
 
@@ -108,7 +108,7 @@ findOriginQueryGPKG.hl_uri <- function(hl_uri, gpkg, ...) {
 #' @method findOriginQuery poi_id
 #' @keywords internal
 findOriginQueryGPKG.poi_id <- function(poi_id, gpkg, ...) {
-  as_sqlite(gpkg, "network") |>
+  as_ogr(gpkg, "network") |>
     dplyr::filter(poi_id == !!poi_id)
 }
 

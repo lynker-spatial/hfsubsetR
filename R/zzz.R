@@ -14,4 +14,12 @@
   .S3method("findOriginQueryGPKG", "poi_id")
   .S3method("findOriginQueryGPKG", "nldi_feature")
   .S3method("findOriginQueryGPKG", "xy")
+  
+  op <- getOption("ogr.query.debug")
+  if (is.null(op) || is.na(op) || length(op) < 1) {
+    op <- FALSE
+    options(ogr.query.debug = op)
+  }
+  
+  invisible()
 }

@@ -77,7 +77,7 @@ extract_gpkg_data = function(gpkg, vpu, ids, lyrs, outfile = NULL){
   
   for(i in 1:length(lyrs)){
     dd = tryCatch({
-      as_sqlite(gpkg, lyrs[i])
+      as_ogr(gpkg, lyrs[i])
     }, error = function(e){
       message(glue("{lyrs[i]} not found"))
       NULL
@@ -85,26 +85,20 @@ extract_gpkg_data = function(gpkg, vpu, ids, lyrs, outfile = NULL){
     
     if(!is.null(dd)){
       
-      dd   <- dd |>
-        filter(vpuid == vpu)
+      dd   <- filter(dd, vpuid == vpu)
       
-      vars <- c('COMID',  'FEATUREID', 'divide_id', "link", "to", 'id', 'toid', "ID", "poi_id")
+      vars <- c('COMID',  'FEATUREID', 
+                'divide_id', 'id', 'toid', "ID", "poi_id",
+                "link", "to")
       
       if ("poi_id" %in% colnames(dd)) {
-        dd = dd %>%
-          dplyr::mutate(poi_id = as.character(poi_id)) |>
+        dd = mutate(dd, poi_id = as.character(poi_id)) |>
           dplyr::filter(if_any(any_of(!!vars), ~ . %in% !!ids))
       } else {
-        dd = dd %>%
-          filter(if_any(any_of(!!vars), ~ . %in% !!ids))
+        dd = filter(dd, if_any(any_of(!!vars), ~ . %in% !!ids))
       }
       
-      
-      if(any(c("geom", "geomtry") %in% colnames(dd))){
-        tmp = read_sf_dataset_sqlite(dd)
-      } else {
-        tmp = collect(dd)
-      }
+      tmp = st_as_sf(dd)
       
       if (!is.null(outfile)) {
         write_sf(tmp, outfile, lyrs[i])
@@ -184,11 +178,11 @@ get_subset = function(id           = NULL,
                             nldi_feature = nldi_feature, 
                             xy = xy)
     
-    net <- as_sqlite(gpkg, "network") %>% 
+    net <- as_ogr(gpkg, "network") %>% 
       filter(vpuid == origin$vpuid) %>% 
       select(any_of(c('id', 'toid', 'divide_id', "poi_id"))) %>% 
       distinct() %>% 
-      collect()
+      st_as_sf()
     
   } else {
     

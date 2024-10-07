@@ -1,8 +1,8 @@
 Package: hfsubsetR
 Type: Package
-Title: Build Hydrofabric subsets in R
-Description: Extract hydrofabric subsets in R.
-Version: 0.1.0
+Title: Hydrofabric Subsetter
+Description: Subset Hydrofabric Data in R
+Version: 0.2.0
 Authors@R: 
     c(person(given = "Mike", 
              family = "Johnson", role = c("aut", "cre"),
@@ -16,12 +16,13 @@ Depends:
 Imports: 
     arrow,
     DBI,
-    RSQLite,
     dplyr,
+    dbplyr,
     glue,
     jsonlite,
     nhdplusTools,
-    sf
+    sf,
+    methods
 Suggests:
     testthat
 License: GPL (>= 3)
@@ -29,3 +30,14 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
 Config/testthat/edition: 3
+Collate: 
+    'OGRSQLConnection.R'
+    'OGRSQLDriver.R'
+    'OGRSQLResult.R'
+    'find_origin.R'
+    'find_origin_gpkg.R'
+    'get_subset.R'
+    'hfsubsetR-package.R'
+    'sf_arrow.R'
+    'sf_ogr.R'
+    'zzz.R'
