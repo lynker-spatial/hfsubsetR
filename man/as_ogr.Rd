@@ -6,11 +6,11 @@
 \alias{as_ogr.OGRSQLConnection}
 \title{Delayed read for vector resources}
 \usage{
-as_ogr(x, layer, query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_")
+as_ogr(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_")
 
-\method{as_ogr}{character}(x, layer, query, ignore_lyrs)
+\method{as_ogr}{character}(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_")
 
-\method{as_ogr}{OGRSQLConnection}(x, layer, query, ignore_lyrs)
+\method{as_ogr}{OGRSQLConnection}(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_")
 }
 \arguments{
 \item{x}{the data source (file path, url, or database connection)}
@@ -23,6 +23,8 @@ are no layers in \code{dsn}. If \code{dsn} is a database connection, then
 \code{layer} can be a table name or a database identifier (see
 \code{\link[DBI]{Id}}). It is also possible to omit \code{layer} and rather
 use the \code{query} argument.}
+
+\item{...}{parameter(s) passed on to \link[sf]{st_as_sf}}
 
 \item{query}{SQL query to pass in directly}
 

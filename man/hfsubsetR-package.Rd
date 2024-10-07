@@ -4,9 +4,9 @@
 \name{hfsubsetR-package}
 \alias{hfsubsetR}
 \alias{hfsubsetR-package}
-\title{hfsubsetR: Build Hydrofabric subsets in R}
+\title{hfsubsetR: Hydrofabric Subsetter}
 \description{
-Extract hydrofabric subsets in R.
+Subset Hydrofabric Data in R
 }
 \seealso{
 Useful links:

@@ -4,7 +4,7 @@
 \name{OGRSQLConnection-class}
 \alias{OGRSQLConnection-class}
 \alias{show,OGRSQLConnection-method}
-\alias{dbSendQuery,OGRSQLConnection,ANY-method}
+\alias{dbSendQuery,OGRSQLConnection-method}
 \alias{dbReadTable,OGRSQLConnection,character-method}
 \alias{dbListTables,OGRSQLConnection-method}
 \alias{dbExistsTable,OGRSQLConnection,ANY-method}
@@ -13,7 +13,7 @@
 \usage{
 \S4method{show}{OGRSQLConnection}(object)
 
-\S4method{dbSendQuery}{OGRSQLConnection,ANY}(conn, statement, ...)
+\S4method{dbSendQuery}{OGRSQLConnection}(conn, statement, ...)
 
 \S4method{dbReadTable}{OGRSQLConnection,character}(conn, name, ...)
 

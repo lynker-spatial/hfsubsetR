@@ -8,7 +8,8 @@
 setClass(
   "OGRSQLConnection",
   contains = "DBIConnection",
-  slots = list(DSN = "character", readonly = "logical")
+  slots = list(DSN = "character", 
+               readonly = "logical")
 )
 
 #' @rdname OGRSQLConnection-class

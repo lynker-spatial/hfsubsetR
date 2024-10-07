@@ -21,9 +21,8 @@ OGRSQL <- function(){ new("OGRSQLDriver") }
 
 setMethod("dbConnect", "OGRSQLDriver",
           function(drv, DSN = "", readonly = TRUE, ...) {
-            ## FIXME: could be a new MEM dataset
             if (nchar(DSN) < 1) stop("DSN must be a valid data source name (file, connection string, url, ...)")
-            new("OGRSQLDriver", DSN = DSN,  readonly = readonly, ...)
+            new("OGRSQLConnection", DSN = DSN,  readonly = readonly, ...)
           })
 
 #' @rdname OGRSQLConnection-class
@@ -33,7 +32,6 @@ setMethod("dbDisconnect", "OGRSQLConnection", function(conn, ...) {
   conn@DSN <- ""
   conn
 })
-
 
 #' Delayed read for vector resources
 #'
@@ -54,20 +52,20 @@ setMethod("dbDisconnect", "OGRSQLConnection", function(conn, ...) {
 #' @return a 'tbl_OGRSQLConnection'
 #' @export
 
-as_ogr <- function(x, layer, query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_") {
+as_ogr <- function(x, layer,..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_") {
   UseMethod("as_ogr")
 }
 
 #' @name as_ogr
 #' @export
-as_ogr.character <- function(x, layer, query, ignore_lyrs) {
+as_ogr.character <- function(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_") {
   db <- dbConnect(OGRSQL(), x)
-  as_ogr(db, layer, query = query, ignore_lyrs = ignore_lyrs)
+  as_ogr(db, layer, ..., query = query, ignore_lyrs = ignore_lyrs)
 }
 
 #' @name as_ogr
 #' @export
-as_ogr.OGRSQLConnection <- function(x, layer, query, ignore_lyrs) {
+as_ogr.OGRSQLConnection <- function(x, layer, ..., query = NA, ignore_lyrs = "gpkg_|rtree_|sqlite_") {
   
   if (!is.na(query)) {
     if (!missing(layer)) message("'layer' argument ignored, using 'query'")
