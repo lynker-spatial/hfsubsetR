@@ -1,120 +1,31 @@
-na.omit = function(x){ x[!is.na(x)] }
+#' @keywords internal
+.dispatch_identifiers <- function(id, comid, hl_uri, poi_id, nldi_feature, xy) {
+  mask <- !c(
+    is.null(id),
+    is.null(comid),
+    is.null(hl_uri),
+    is.null(poi_id),
+    is.null(nldi_feature),
+    is.null(xy)
+  )
 
-#' Extract Data from Arrow Stores
-#' @param hook a local or s3 hydrofabric directory
-#' @param vpu an optional VPU to quicken search
-#' @param ids all identifiers to extract
-#' @param lyrs hydrofabric layers to subset
-#' @param outfile a path to write resulting geopackage
-#' @return list or file path
-#' @export
-
-extract_arrow_data = function(hook, vpu, ids, lyrs, outfile = NULL){
-  
-  vpuid <- poi_id <-  NULL
-  hydrofabric = list()
-  
-  for(i in 1:length(lyrs)){
-    dd = tryCatch({
-      open_dataset(glue("{hook}_{lyrs[i]}")) 
-    }, error = function(e){
-      message(glue("{lyrs[i]} not found"))
-      NULL
-    })
-    
-    if(!is.null(dd)){
- 
-      dd   <- dd |>
-        filter(vpuid == vpu)
-      
-      vars <- c('COMID',  'FEATUREID', 'divide_id', "link", "to", 'id', 'toid', "ID", "poi_id")
-      
-      if ("poi_id" %in% names(dd)) {
-        dd = dd %>%
-          dplyr::mutate(poi_id = as.character(poi_id)) |>
-          dplyr::filter(if_any(any_of(!!vars), ~ . %in% !!ids))
-      } else {
-        dd = dd %>%
-          filter(if_any(any_of(!!vars), ~ . %in% !!ids))
-      }
-
-      
-      if(any(c("geom", "geomtry") %in% names(dd))){
-        tmp = read_sf_dataset(dd)
-      } else {
-        tmp = collect(dd)
-      }
-      
-      if (!is.null(outfile)) {
-        write_sf(tmp, outfile, lyrs[i])
-      } else {
-        hydrofabric[[lyrs[i]]] = tmp
-      }
-    }
+  if (sum(mask) == 0) {
+    stop("One identifier type must be given.", call. = FALSE)
+  } else if (sum(mask) > 1) {
+    stop("No more than one identifier type must be given.", call. = FALSE)
   }
-  
-  if (!is.null(outfile)) {
-   return(outfile) 
-  } else {
-    return(hydrofabric)
-  }
+
+  index <- list(
+    id = id,
+    comid = comid,
+    hl_uri = hl_uri,
+    poi_id = poi_id,
+    nldi_feature = nldi_feature,
+    xy = xy
+  )
+
+  list(value = index[[which(mask)]], type = names(index)[[which(mask)]])
 }
-
-
-#' Extract Data from Arrow Stores
-#' @param gpkg a local gpkg file
-#' @param vpu an optional VPU to quicken search
-#' @param ids all identifiers to extract
-#' @param lyrs hydrofabric layers to subset
-#' @param outfile a path to write resulting geopackage
-#' @return list or file path
-#' @export
-
-extract_gpkg_data = function(gpkg, vpu, ids, lyrs, outfile = NULL){
-  
-  vpuid <- poi_id <-  NULL
-  hydrofabric = list()
-  
-  for(i in 1:length(lyrs)){
-    dd = tryCatch({
-      as_ogr(gpkg, lyrs[i])
-    }, error = function(e){
-      message(glue("{lyrs[i]} not found"))
-      NULL
-    })
-    
-    if(!is.null(dd)){
-      
-      dd   <- filter(dd, vpuid == vpu)
-      
-      vars <- c('COMID',  'FEATUREID', 
-                'divide_id', 'id', 'toid', "ID", "poi_id",
-                "link", "to")
-      
-      if ("poi_id" %in% colnames(dd)) {
-        dd = mutate(dd, poi_id = as.character(poi_id)) |>
-          dplyr::filter(if_any(any_of(!!vars), ~ . %in% !!ids))
-      } else {
-        dd = filter(dd, if_any(any_of(!!vars), ~ . %in% !!ids))
-      }
-      
-      tmp = st_as_sf(dd)
-      
-      if (!is.null(outfile)) {
-        write_sf(tmp, outfile, lyrs[i])
-      } else {
-        hydrofabric[[lyrs[i]]] = tmp
-      }
-    }
-  }
-  
-  if (!is.null(outfile)) {
-    return(outfile) 
-  } else {
-    return(hydrofabric)
-  }
-}
-
 
 #' @title Build a hydrofabric subset
 #' @param id hydrofabric id. datatype: string / vector of strings e.g., 'wb-10026' or c('wb-10026', 'wb-10355') 
@@ -137,90 +48,40 @@ extract_gpkg_data = function(gpkg, vpu, ids, lyrs, outfile = NULL){
 #' @importFrom arrow open_dataset
 #' @importFrom dplyr select filter collect `%>%` everything if_any any_of distinct rename
 #' @importFrom sf st_set_crs write_sf st_sfc st_point st_bbox
+get_subset <- function(
+  id = NULL, 
+  comid = NULL,  
+  hl_uri = NULL, 
+  poi_id = NULL, 
+  nldi_feature = NULL, 
+  xy = NULL, 
+  lyrs = c("divides", "flowpaths", "network", "nexus"),
+  gpkg = NULL,
+  source = "s3://lynker-spatial/hydrofabric",
+  hf_version = "2.2", 
+  type = "nextgen",
+  domain = "conus",
+  outfile = NULL, 
+  overwrite = FALSE
+) {
+  kv <- .dispatch_identifiers(id, comid, hl_uri, poi_id, nldi_feature, xy)
 
-get_subset = function(id           = NULL, 
-                      comid        = NULL,  
-                      hl_uri       = NULL, 
-                      poi_id       = NULL, 
-                      nldi_feature = NULL, 
-                      xy           = NULL, 
-                      lyrs = c('divides',
-                               'flowpaths',
-                               'network',
-                               'nexus'),
-                      gpkg = NULL,
-                      source = "s3://lynker-spatial/hydrofabric",
-                      hf_version = "2.2", 
-                      type = "nextgen",
-                      domain = "conus",
-                      outfile = NULL, 
-                      overwrite = FALSE) {
+  if (!is.null(gpkg)) {
+    src <- query_source_sf(gpkg)
+  } else {
+    uri <- paste(source, paste0("v", hf_version), type, domain, sep = "/")
+    src <- query_source_arrow(uri)
+  }
   
+  .new <-
+    query() |>
+    query_set_id(identifier = kv$value, type = kv$type) |>
+    query_set_layers(layers = lyrs) |>
+    query_set_source(src)
+
   if (!is.null(outfile)) {
-    if (file.exists(outfile) & overwrite) {
-      unlink(outfile)
-    } else if (file.exists(outfile)) {
-      warning(glue("{outfile} already exists and overwrite is FALSE"))
-      return(outfile)
-    }
-  }
-  
-  hf_id <- vpuid <-  NULL
-  hook      <- glue("{source}/v{hf_version}/{type}/{domain}")
-
-  if(!is.null(gpkg)){
-    
-    origin <- findOriginGPKG(gpkg,
-                            id = id, 
-                            comid = comid,  
-                            hl_uri = hl_uri, 
-                            poi_id = poi_id, 
-                            nldi_feature = nldi_feature, 
-                            xy = xy)
-    
-    net <- as_ogr(gpkg, "network") %>% 
-      filter(vpuid == origin$vpuid) %>% 
-      select(any_of(c('id', 'toid', 'divide_id', "poi_id"))) %>% 
-      distinct() %>% 
-      st_as_sf()
-    
-  } else {
-    
-    origin <- findOrigin(network = glue("{hook}_network"),
-                        id = id, 
-                        comid = comid,  
-                        hl_uri = hl_uri, 
-                        poi_id = poi_id, 
-                        nldi_feature = nldi_feature, 
-                        xy = xy)
-  
-    net = open_dataset(glue("{hook}_network")) %>% 
-      filter(vpuid == origin$vpuid) %>% 
-      select(any_of(c('id', 'toid', 'divide_id', "poi_id"))) %>% 
-      distinct() %>% 
-      collect()
-    
+    .new <- query_set_sink(.new, sink = outfile, overwrite = overwrite)
   }
 
-  subset <- suppressWarnings({ get_sorted(net, outlets = origin$toid) })
-
-  subset$toid[nrow(subset)] <- NA
-  
-  all_ids <- na.omit(unique(as.vector(as.matrix(subset))))
-  
-  if(!is.null(gpkg)){
-    extract_gpkg_data(gpkg    = gpkg, 
-                      vpu     = origin$vpuid, 
-                      ids     = all_ids,
-                      lyrs    = lyrs, 
-                      outfile = outfile) 
-  } else {
-    extract_arrow_data(hook = hook, 
-                       vpu = origin$vpuid, 
-                       ids = all_ids,
-                       lyrs = lyrs, 
-                       outfile = outfile) 
-  }
-  
+  query_subset(.new)
 }
-

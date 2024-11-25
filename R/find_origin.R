@@ -1,61 +1,30 @@
-#' @keywords internal
-.makeOriginQueryClass <- function(data, cls) {
-  if (is.null(data)) {
-    return(NULL)
-  }
-
-  structure(data, class = c(cls, class(data)))
-}
-
-#' Find Origin From ID
-#' @param network a URI to a network-formatted Arrow dataset
-#' @inheritParams get_subset
-#' @return data.frame
+#' Find an origin from indexed IDs
+#' @param network A `dplyr`-compatible object.
+#' @param id A queryable identifier of type `type`.
+#' @param type An index type describing `id`.
+#' @returns A network origin. If a single origin is not found,
+#'          then an exception is raised.
 #' @export
-
-findOrigin <- function(
+find_origin <- function(
   network,
-  id = NULL,
-  comid = NULL,
-  hl_uri = NULL,
-  poi_id = NULL,
-  nldi_feature = NULL,
-  xy = NULL
+  id,
+  type = c("id", "comid", "hl_uri", "poi_id", "nldi_feature", "xy")
 ) {
-  
-  # Capture arguments
-  .args <- c(as.list(environment()))
+  type <- match.arg(type)
+  query <- structure(id, class = type)
 
-  # Pop `network` off arguments
-  .args <- .args[seq.int(2, length(.args), 1)]
-  
-  # Get all non-NULL arguments
-  .args <- .args[!vapply(.args, is.null, logical(1))]
+  origin <- try(find_origin_query(query, network))
 
-  if (length(.args) == 0) {
-    stop("at least one argument other than `network` is required.")
-  }
-
-  if (length(.args) > 1) {
-    stop(paste(
-      "only one identifier type should be passed, but received",
-      paste0("`", names(.args), "`", collapse = "/")
-    ))
+  if (inherits(origin, "try-error")) {
+    stop(origin, call. = FALSE)
   }
   
-  hf_id <- hydroseq <- poi_id <- toid <- topo <- vpuid <- NULL
-  
-  .query <- .makeOriginQueryClass(
-    .args[[1]],
-    ifelse(names(.args) == "id", "hf_id", names(.args))
-  )
-
   origin <-
-    findOriginQuery(.query, network) |> 
+    origin |>
     dplyr::select(id, toid, vpuid, topo, hydroseq) |>
     dplyr::distinct() |>
     dplyr::collect() |> 
-    dplyr::slice_min(hydroseq, with_ties = TRUE) 
+    dplyr::slice_min(hydroseq, with_ties = TRUE)
 
   if (nrow(origin) == 0) {
     stop("No origin found")
@@ -66,22 +35,18 @@ findOrigin <- function(
   }
 }
 
-
-#' S3 method for dispatching on query type
-#' @return Arrow Table/Deferred connection
+#' S3 dispatch on query identifier type
+#' @param id A queryable identifier, see `find_origin`.
+#' @param network A `dplyr`-compatible object.
+#' @returns `network` after applying a [dplyr::filter] expression.
 #' @keywords internal
-findOriginQuery <- function(id, network, ...) {
-  if (!inherits(network, "character")) {
-    stop("`network` must be a path/URI")
-  }
-
-  UseMethod("findOriginQuery")
+find_origin_query <- function(id, network) {
+  UseMethod("find_origin_query")
 }
 
-
-#' @method findOriginQuery default
+#' @method find_origin_query default
 #' @keywords internal
-findOriginQuery.default <- function(id, network, ...) {
+find_origin_query.default <- function(id, network) {
   stop(paste(
     "identifier of class",
     paste0("`", class(id), "`", collapse = "/"),
@@ -89,61 +54,56 @@ findOriginQuery.default <- function(id, network, ...) {
   ))
 }
 
-
-#' @method findOriginQuery hf_id
+#' @method find_origin_query id
 #' @keywords internal
-findOriginQuery.hf_id <- function(id, network, ...) {
-  arrow::open_dataset(network) |>
-    dplyr::filter(id == !!id)
+find_origin_query.id <- function(id, network) {
+  id <- unclass(id)
+  dplyr::filter(network, id == !!id)
 }
 
-
-#' @method findOriginQuery comid
+#' @method find_origin_query comid
 #' @keywords internal
-findOriginQuery.comid <- function(comid, network, ...) {
-  hf_id <- NULL
-  arrow::open_dataset(network) |>
-    dplyr::filter(hf_id == !!comid)
+find_origin_query.comid <- function(comid, network) {
+  comid <- unclass(comid)
+  dplyr::filter(network, hf_id == !!comid)
 }
 
-
-#' @method findOriginQuery hl_uri
+#' @method find_origin_query hl_uri
 #' @keywords internal
-findOriginQuery.hl_uri <- function(hl_uri, network, ...) {
-  arrow::open_dataset(network) |>
-    dplyr::filter(hl_uri == !!hl_uri)
+find_origin_query.hl_uri <- function(hl_uri, network) {
+  hl_uri <- unclass(hl_uri)
+  dplyr::filter(network, hl_uri == !!hl_uri)
 }
 
-
-#' @method findOriginQuery poi_id
+#' @method find_origin_query poi_id
 #' @keywords internal
-findOriginQuery.poi_id <- function(poi_id, network, ...) {
-  arrow::open_dataset(network) |>
-    dplyr::filter(poi_id == !!poi_id)
+find_origin_query.poi_id <- function(poi_id, network) {
+  poi_id <- unclass(poi_id)
+  dplyr::filter(network, poi_id == !!poi_id)
 }
 
-
-#' @method findOriginQuery nldi_feature
+#' @method find_origin_query nldi_feature
 #' @keywords internal
-findOriginQuery.nldi_feature <- function(nldi_feature, network, ...) {
+find_origin_query.nldi_feature <- function(nldi_feature, network) {
   .Class <- "comid"
-  nldi_feature <-
-    nhdplusTools::discover_nhdplus_id(nldi_feature = nldi_feature) |>
-    .makeOriginQueryClass("comid")
+
+  nldi_feature <- structure(
+    nhdplusTools::discover_nhdplus_id(nldi_feature = nldi_feature),
+    class = "comid"
+  )
 
   NextMethod()
 }
 
-
-#' @method findOriginQuery xy
+#' @method find_origin_query xy
 #' @keywords internal
-findOriginQuery.xy <- function(xy, network, ...) {
+find_origin_query.xy <- function(xy, network) {
   .Class <- "comid"
-  xy <-
-    sf::st_point(xy) |>
-    sf::st_sfc(crs = 4326) |>
-    nhdplusTools::discover_nhdplus_id(point = _) |>
-    .makeOriginQueryClass("comid")
+
+  xy <- structure(
+    nhdplusTools::discover_nhdplus_id(point = sf::st_sfc(sf::st_point(xy), crs = 4326)),
+    class = "comid"
+  )
 
   NextMethod()
 }
