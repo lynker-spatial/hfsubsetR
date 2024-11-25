@@ -6,6 +6,9 @@
 \usage{
 query()
 }
+\value{
+A `hfsubset_query` object
+}
 \description{
 Initialize a new hfsubset query
 }
