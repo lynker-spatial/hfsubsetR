@@ -1,3 +1,6 @@
+#' Execute a query subset
+#' @param query A `hfsubset_query` object
+#' @returns A list of hydrofabric layers, or the path to the sink of the query
 #' @export
 query_subset <- function(query) {
   identifier <- query_get_id(query)
@@ -28,10 +31,13 @@ query_subset <- function(query) {
   query$vpuid <- origin$vpuid
   query$requested <- all_identifiers
 
-  # See below
   query_extract(query)
 }
 
+#' Perform data extraction from a query
+#' @param query A `hfsubset_query` object
+#' @returns A list of hydrofabric layers, or the path to the sink of the query
+#' @note This should be called from query_subset().
 #' @keywords internal
 query_extract <- function(query) {
   layers  <- query_get_layers(query)

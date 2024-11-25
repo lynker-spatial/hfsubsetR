@@ -1,32 +1,3 @@
-#' @keywords internal
-.dispatch_identifiers <- function(id, comid, hl_uri, poi_id, nldi_feature, xy) {
-  mask <- !c(
-    is.null(id),
-    is.null(comid),
-    is.null(hl_uri),
-    is.null(poi_id),
-    is.null(nldi_feature),
-    is.null(xy)
-  )
-
-  if (sum(mask) == 0) {
-    stop("One identifier type must be given.", call. = FALSE)
-  } else if (sum(mask) > 1) {
-    stop("No more than one identifier type must be given.", call. = FALSE)
-  }
-
-  index <- list(
-    id = id,
-    comid = comid,
-    hl_uri = hl_uri,
-    poi_id = poi_id,
-    nldi_feature = nldi_feature,
-    xy = xy
-  )
-
-  list(value = index[[which(mask)]], type = names(index)[[which(mask)]])
-}
-
 #' @title Build a hydrofabric subset
 #' @param id hydrofabric id. datatype: string / vector of strings e.g., 'wb-10026' or c('wb-10026', 'wb-10355') 
 #' @param comid NHDPlusV2 COMID. datatype: int / vector of int e.g., 61297116 or c(61297116 , 6129261) 
@@ -84,4 +55,34 @@ get_subset <- function(
   }
 
   query_subset(.new)
+}
+
+
+#' @keywords internal
+.dispatch_identifiers <- function(id, comid, hl_uri, poi_id, nldi_feature, xy) {
+  mask <- !c(
+    is.null(id),
+    is.null(comid),
+    is.null(hl_uri),
+    is.null(poi_id),
+    is.null(nldi_feature),
+    is.null(xy)
+  )
+
+  if (sum(mask) == 0) {
+    stop("One identifier type must be given.", call. = FALSE)
+  } else if (sum(mask) > 1) {
+    stop("No more than one identifier type must be given.", call. = FALSE)
+  }
+
+  index <- list(
+    id = id,
+    comid = comid,
+    hl_uri = hl_uri,
+    poi_id = poi_id,
+    nldi_feature = nldi_feature,
+    xy = xy
+  )
+
+  list(value = index[[which(mask)]], type = names(index)[[which(mask)]])
 }
