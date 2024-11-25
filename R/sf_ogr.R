@@ -114,12 +114,10 @@ st_as_sf.tbl_OGRSQLConnection <- function(x, ...) {
   
   d <- collect(x, ...)
 
-  if(any(c("geom", "geomtry") %in% colnames(d))){
+  if(any(c("geom", "geometry") %in% colnames(d))){
     st_as_sf(d)
   } else {
     d
   }
   
 }
-
-
