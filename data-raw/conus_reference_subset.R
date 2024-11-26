@@ -1,4 +1,7 @@
 ## code to prepare `conus_reference_subset` dataset goes here
+library(dplyr)
+library(sf)
+
 conus_ref_gpkg = "/Volumes/T7SSD/lynker-spatial/hydrofabric/v3.0/reference-features/conus_reference.gpkg"
 output_gpkg    = "tests/testthat/testdata/conus_reference_subset.gpkg"
 
@@ -9,12 +12,18 @@ if(file.exists(output_gpkg))  {
 }
 
 VPU_ID = "06"
-HUC6 = "060400"
+# HUC_CODE = "060400"
+HUC_CODE = "06040001"
+# TEST_ID = 19550502
 
 network = 
     conus_ref_gpkg  %>% 
     sf::read_sf(query = paste0("SELECT * FROM network WHERE vpuid = '", VPU_ID, "'"))  %>% 
-    dplyr::filter(grepl(HUC6, reachcode))
+    dplyr::filter(grepl(HUC_CODE, reachcode))
+
+# network  %>% 
+# dplyr::filter(id == TEST_ID) %>% 
+# dplyr::pull(reachcode)  
 
 divides = 
     conus_ref_gpkg  %>% 
@@ -32,8 +41,10 @@ flowpaths =
 flowpaths =
     flowpaths  %>% 
     dplyr::filter(id %in% network$id)
-    # .$geom  %>% plot()
 
+# flowpaths %>% 
+#     .$geom %>% 
+#     plot()
 
 sf::write_sf(divides, dsn = output_gpkg, layer = "divides", driver = "GPKG")
 sf::write_sf(flowpaths, dsn = output_gpkg, layer = "flowpaths", driver = "GPKG", append = TRUE)

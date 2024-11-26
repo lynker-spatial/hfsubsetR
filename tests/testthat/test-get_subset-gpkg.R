@@ -166,9 +166,9 @@ test_that("Local conus_reference gpkg flowpaths layer dimensions are correct and
     testthat::expect_true("mainstemlp" %in% names(subset_flowpaths))
     testthat::expect_true(TEST_ID %in% subset_flowpaths$id)
 
-    expect_equal(nrow(subset_flowpaths), 1050)
-    expect_equal(unique(subset_flowpaths$vpuid), "09")
-    expect_equal(min(subset_flowpaths$mainstemlp), 2637849)
+    expect_equal(nrow(subset_flowpaths), 72)
+    expect_equal(unique(subset_flowpaths$vpuid), "06")
+    expect_equal(min(subset_flowpaths$mainstemlp), 1403109)
     expect_true(all(st_geometry_type(subset_flowpaths) %in% c("MULTILINESTRING", "LINESTRING")))
 
     unlink(outfile)
@@ -238,14 +238,15 @@ test_that("Local conus_reference gpkg network layer dimensions are correct and c
 })
 
 test_that("Local conus_reference gpkg flowpaths subset for a flowpath at the most upstream location 
-    results in a subset of the flowpath and its 2 neighbors", {
+    results in a subset of the flowpath and its 1 neighbors", {
 
     gpkg = testthat::test_path("testdata", "conus_reference_subset.gpkg")
     # gpkg = "/Volumes/T7SSD/lynker-spatial/hydrofabric/v3.0/reference-features/conus_reference.gpkg"
     
     # sf::st_layers(gpkg)
     
-    TEST_ID = 1861420
+    # TEST_ID = 1861420
+    TEST_ID = 19544390
 
     get_subset(outfile = outfile, 
                 id = TEST_ID,
@@ -258,8 +259,8 @@ test_that("Local conus_reference gpkg flowpaths subset for a flowpath at the mos
 
     subset_flowpaths <- read_sf("subset_test.gpkg", layer = "flowpaths")
 
-    # mapview::mapview(dplyr::filter(subset_flowpaths, id != TEST_ID) , color = "red") +
-    # mapview::mapview(dplyr::filter(subset_flowpaths, id == TEST_ID),color = "green")  
+    mapview::mapview(dplyr::filter(subset_flowpaths, id != TEST_ID) , color = "red") +
+    mapview::mapview(dplyr::filter(subset_flowpaths, id == TEST_ID),color = "green")  
     
     # Flowlines
     testthat::expect_true("id" %in% names(subset_flowpaths))
@@ -267,9 +268,9 @@ test_that("Local conus_reference gpkg flowpaths subset for a flowpath at the mos
     testthat::expect_true("mainstemlp" %in% names(subset_flowpaths))
     testthat::expect_true(TEST_ID %in% subset_flowpaths$id)
 
-    expect_equal(nrow(subset_flowpaths), 3)
+    expect_equal(nrow(subset_flowpaths), 2)
     expect_equal(unique(subset_flowpaths$vpuid), "06")
-    expect_equal(min(subset_flowpaths$mainstemlp), 1354178)
+    expect_equal(min(subset_flowpaths$mainstemlp), 1403141)
     expect_true(all(st_geometry_type(subset_flowpaths) %in% c("MULTILINESTRING", "LINESTRING")))
 
     unlink(outfile)
@@ -281,7 +282,7 @@ test_that("Local conus_reference gpkg flowpaths check 1 'id' from each VPU and m
     gpkg = testthat::test_path("testdata", "conus_reference_subset.gpkg")
     # gpkg = "/Volumes/T7SSD/lynker-spatial/hydrofabric/v3.0/reference-features/conus_reference.gpkg"
     
-    # # NOTE: Grabs 1 ID from each streamorder
+    # # NOTE: Grabs 1 ID from each streamorder to build the TEST_IDS list below:
     # streamorder_ids = sf::read_sf(gpkg, query = "
     #                     SELECT *
     #                     FROM (
@@ -290,15 +291,20 @@ test_that("Local conus_reference gpkg flowpaths check 1 'id' from each VPU and m
     #                     ) subquery
     #                     WHERE row_num <= 1
     #                 ")
-    # streamorder_ids$id %>% unique()  %>% paste0("'", ., "'", collapse = ", ")
+    
+    # # TODO: prints out the TEST_IDS list
+    # streamorder_ids$id %>% 
+        # unique() %>% 
+        # paste0("'", ., "'", collapse = ", ")
 
     # NOTE: this is 1 ID from each stream order
-    TEST_IDS = c('1861418', '1861424', '1861440', '1861570', '1862438', '1861600', '1861886')
+    TEST_IDS = c('19541902', '19541910', '19541920', '19542124', '19543764', '19542748')
 
     for (id in TEST_IDS) {
         
         message(id)
-
+        # id
+        
         get_subset(outfile = outfile, 
                     id = id,
                     lyrs = c('flowpaths'),
@@ -355,6 +361,7 @@ test_that("Local conus_reference gpkg if outfile is specified a file is created 
     unlink(outfile)
 
     response_data = get_subset(
+            outfile = NULL,
             id = TEST_ID,
             lyrs = c('flowpaths'),
             gpkg = gpkg,
