@@ -1,3 +1,11 @@
+
+# library(dplyr)
+# library(arrow)
+# library(sf)
+# library(testthat)
+
+# devtools::load_all()
+
 #x network  <- '/Users/mjohnson/hydrofabric/v2.2/reference/conus_network'
 network  <- 's3://lynker-spatial/hydrofabric/v2.2/reference/conus_network'
 

@@ -3,8 +3,9 @@
 #' @returns A list of hydrofabric layers, or the path to the sink of the query
 #' @export
 query_subset <- function(query) {
+  
   identifier <- query_get_id(query)
-
+  
   origin <- find_origin(
     network = query_source_layer(query$source, "network"),
     id = identifier,
@@ -12,7 +13,7 @@ query_subset <- function(query) {
   )
 
   network <- query_source_layer(query$source, "network") |>
-    dplyr::filter(vpuid == origin$vpuid) |>
+    dplyr::filter(vpuid == !!origin$vpuid) |>
     dplyr::select(dplyr::any_of(c("id", "toid", "divide_id", "poi_id"))) |>
     dplyr::distinct() |>
     dplyr::collect()

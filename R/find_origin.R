@@ -10,6 +10,7 @@ find_origin <- function(
   id,
   type = c("id", "comid", "hl_uri", "poi_id", "nldi_feature", "xy")
 ) {
+
   type <- match.arg(type)
   query <- structure(id, class = type)
 
