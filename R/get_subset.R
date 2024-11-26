@@ -35,21 +35,22 @@ get_subset <- function(
   outfile = NULL, 
   overwrite = FALSE
 ) {
-  kv <- .dispatch_identifiers(id, comid, hl_uri, poi_id, nldi_feature, xy)
 
+  kv <- .dispatch_identifiers(id, comid, hl_uri, poi_id, nldi_feature, xy)
+  
   if (!is.null(gpkg)) {
     src <- query_source_sf(gpkg)
   } else {
     uri <- paste(source, paste0("v", hf_version), type, domain, sep = "/")
     src <- query_source_arrow(uri)
   }
-  
+
   .new <-
     query() |>
     query_set_id(identifier = kv$value, type = kv$type) |>
     query_set_layers(layers = lyrs) |>
     query_set_source(src)
-
+  
   if (!is.null(outfile)) {
     .new <- query_set_sink(.new, sink = outfile, overwrite = overwrite)
   }
