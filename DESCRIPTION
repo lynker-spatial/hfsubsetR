@@ -2,7 +2,7 @@ Package: hfsubsetR
 Type: Package
 Title: Hydrofabric Subsetter
 Description: Subset Hydrofabric Data in R
-Version: 0.2.1
+Version: 0.2.2
 Authors@R: 
     c(person(given = "Mike", 
              family = "Johnson", role = c("aut", "cre"),
