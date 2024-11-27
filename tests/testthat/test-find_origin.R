@@ -1,51 +1,50 @@
-params <- list(
-  list(
-    type = "id",
-    value = 19541984,
-    expected = list(
-      id = 19541984,
-      topo = "fl-fl",
-      hydroseq = 1404202
-    )
-  ),
-  list(
-    type = "hl_uri",
-    value = "huc12-060400010704",
-    expected = list(
-      toid = 19558132,
-      topo = "fl-fl",
-      hydroseq = 1356216
-    )
-  ),
-  list(
-    type = "comid",
-    value = 19541968,
-    expected = list(
-      id = 19541968,
-      toid = 19541946,
-      topo = "fl-fl",
-      hydroseq = 1355615
-    )
-  ),
-  list(
-    type = "xy",
-    value = c(-88.1971, 35.38836),
-    expected = list(
-      id = 19550296,
-      toid = 19550502,
-      topo = "fl-fl",
-      vpuid = "06",
-      hydroseq = 1403112
+testthat::test_that("find_origin works as expected", {
+  params <- list(
+    list(
+      type = "id",
+      value = 19541984,
+      expected = list(
+        id = 19541984,
+        topo = "fl-fl",
+        hydroseq = 1404202
+      )
+    ),
+    list(
+      type = "hl_uri",
+      value = "huc12-060400010704",
+      expected = list(
+        toid = 19558132,
+        topo = "fl-fl",
+        hydroseq = 1356216
+      )
+    ),
+    list(
+      type = "comid",
+      value = 19541968,
+      expected = list(
+        id = 19541968,
+        toid = 19541946,
+        topo = "fl-fl",
+        hydroseq = 1355615
+      )
+    ),
+    list(
+      type = "xy",
+      value = c(-88.1971, 35.38836),
+      expected = list(
+        id = 19550296,
+        toid = 19550502,
+        topo = "fl-fl",
+        vpuid = "06",
+        hydroseq = 1403112
+      )
     )
   )
-)
 
-bad_params <- list(
-  list(type = "id", value = 99999999999999),
-  list(type = "hl_uri", value = "notreal")
-)
-
-testthat::test_that("find_origin works as expected", {
+  bad_params <- list(
+    list(type = "id", value = 99999999999999),
+    list(type = "hl_uri", value = "notreal")
+  )
 
   source_path <- testthat::test_path("testdata", "conus_reference_subset.gpkg")
   testthat::skip_if(!file.exists(source_path), paste("File", source_path, "does not exist"))
@@ -62,7 +61,7 @@ testthat::test_that("find_origin works as expected", {
     testthat::test_that(paste0("query<", param$type, "> returns expected results"), {
       origin <- find_origin(
         network = network,
-        id   = param$value,
+        id = param$value,
         type = param$type
       )
 
