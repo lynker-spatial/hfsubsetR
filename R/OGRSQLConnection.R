@@ -95,3 +95,7 @@ setMethod("dbListTables", c(conn = "OGRSQLConnection"), function(conn, ...) {
 setMethod("dbExistsTable", c(conn = "OGRSQLConnection"), function(conn, name, ...) {
   name %in% dbListTables(conn, ...)
 })
+
+#' @importFrom dbplyr dbplyr_edition
+#' @export
+dbplyr_edition.OGRSQLConnection <- function(con) 2L
