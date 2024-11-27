@@ -18,7 +18,7 @@ query_subset <- function(query) {
     dplyr::distinct() |>
     dplyr::collect()
 
-  topology <- nhdplusTools::get_sorted(network, outlets = origin$toid)
+  topology <- suppressWarnings(nhdplusTools::get_sorted(network, outlets = origin$toid))
   topology$toid[nrow(topology)] <- NA
 
   all_identifiers <-
@@ -58,7 +58,7 @@ query_extract <- function(query) {
     layer_data <- dplyr::filter(layer_data, vpuid == !!query$vpuid)
     variables <- c("COMID", "FEATUREID", "divide_id", "link", "to", "id", "toid", "ID", "poi_id")
   
-    if ("poi_id" %in% names(layer_data)) {
+    if ("poi_id" %in% colnames(layer_data)) {
       layer_data <- dplyr::mutate(layer_data, poi_id = as.character(poi_id))
     }
 

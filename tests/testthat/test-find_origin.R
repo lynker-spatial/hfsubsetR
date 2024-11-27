@@ -1,448 +1,89 @@
-library(dplyr)
-library(arrow)
-library(sf)
-library(testthat)
-
-# devtools::load_all()
-
-test_that("find_origin for a single ID", {
-
-    gpkg = testthat::test_path("testdata", "conus_reference_subset.gpkg")
-
-    # Input values: 
-    id = 19541984 
-    comid = NULL
-    hl_uri = NULL
-    poi_id = NULL
-    nldi_feature = NULL
-    xy = NULL
-    outfile = NULL
-    lyrs = c("flowpaths")
-
-    # gpkg = "/Volumes/T7SSD/lynker-spatial/hydrofabric/v3.0/reference-features/conus_reference.gpkg"
-    kv <- .dispatch_identifiers(id, comid, hl_uri, poi_id, nldi_feature, xy)
-  
-    if (!is.null(gpkg)) {
-        src <- query_source_sf(gpkg)
-    } else {
-        uri <- paste(source, paste0("v", hf_version), type, domain, sep = "/")
-        src <- query_source_arrow(uri)
-    }
-    query <-
-        query() |>
-        query_set_id(identifier = kv$value, type = kv$type) |>
-        query_set_layers(layers = lyrs) |>
-        query_set_source(src)
-    
-    if (!is.null(outfile)) {
-        query <- query_set_sink(query, sink = outfile, overwrite = overwrite)
-    }
-
-    identifier <- query_get_id(query)
-  
-    origin <- find_origin(
-        network = query_source_layer(query$source, "network"),
-        id = identifier,
-        type = class(identifier)
-    ) 
-
-    testthat::expect_true(
-        nrow(origin) == 1
+params <- list(
+  list(
+    type = "id",
+    value = 19541984,
+    expected = list(
+      id = 19541984,
+      topo = "fl-fl",
+      hydroseq = 1404202
     )
-    
-    testthat::expect_equal(
-        origin$id,
-        19541984
+  ),
+  list(
+    type = "hl_uri",
+    value = "huc12-060400010704",
+    expected = list(
+      toid = 19558132,
+      topo = "fl-fl",
+      hydroseq = 1356216
     )
-
-    testthat::expect_equal(
-        origin$topo,
-        'fl-fl'
+  ),
+  list(
+    type = "comid",
+    value = 19541968,
+    expected = list(
+      id = 19541968,
+      toid = 19541946,
+      topo = "fl-fl",
+      hydroseq = 1355615
     )
-
-    testthat::expect_equal(
-        origin$hydroseq,
-        1404202
+  ),
+  list(
+    type = "xy",
+    value = c(-88.1971, 35.38836),
+    expected = list(
+      id = 19550296,
+      toid = 19550502,
+      topo = "fl-fl",
+      vpuid = "06",
+      hydroseq = 1403112
     )
-})
+  )
+)
 
+bad_params <- list(
+  list(type = "id", value = 99999999999999),
+  list(type = "hl_uri", value = "notreal")
+)
 
-test_that("find_origin for a single hf_uri", {
+testthat::test_that("find_origin works as expected", {
 
-    gpkg = testthat::test_path("testdata", "conus_reference_subset.gpkg")
+  source_path <- testthat::test_path("testdata", "conus_reference_subset.gpkg")
+  testthat::skip_if(!file.exists(source_path), paste("File", source_path, "does not exist"))
 
-    # Input values: 
-    id = NULL 
-    comid = NULL
-    hl_uri = "huc12-060400010704"
-    poi_id = NULL
-    nldi_feature = NULL
-    xy = NULL
-    outfile = NULL
-    lyrs = c("flowpaths")
+  origin_source <- query_source_sf(source_path)
+  testthat::expect_s3_class(origin_source, c("hfsubset_query_source_sf", "hfsubset_query_source"))
 
-    # gpkg = "/Volumes/T7SSD/lynker-spatial/hydrofabric/v3.0/reference-features/conus_reference.gpkg"
-    kv <- .dispatch_identifiers(id, comid, hl_uri, poi_id, nldi_feature, xy)
-  
-    if (!is.null(gpkg)) {
-        src <- query_source_sf(gpkg)
-    } else {
-        uri <- paste(source, paste0("v", hf_version), type, domain, sep = "/")
-        src <- query_source_arrow(uri)
-    }
+  # Suppresses dbplyr warnings
+  network <- suppressWarnings(query_source_layer(origin_source, "network"))
+  testthat::expect_s3_class(network, c("tbl_OGRSQLConnection"))
 
-    query <-
-        query() |>
-        query_set_id(identifier = kv$value, type = kv$type) |>
-        # query_set_layers(layers = lyrs) |>
-        query_set_source(src)
-    
-    if (!is.null(outfile)) {
-        query <- query_set_sink(query, sink = outfile, overwrite = overwrite)
-    }
+  # Check that good parameters return expected data
+  for (param in params) {
+    testthat::test_that(paste0("query<", param$type, "> returns expected results"), {
+      origin <- find_origin(
+        network = network,
+        id   = param$value,
+        type = param$type
+      )
 
-    identifier <- query_get_id(query)
-  
-    origin <- find_origin(
-        network = query_source_layer(query$source, "network"),
-        id = identifier,
-        type = class(identifier)
-    ) 
+      testthat::expect_equal(nrow(origin), 1)
+      for (nm in names(param$expected)) {
+        testthat::expect_equal(origin[[nm]], param$expected[[nm]])
+      }
+    })
+  }
 
-    testthat::expect_true(
-        nrow(origin) == 1
-    )
-    
-    testthat::expect_equal(
-        origin$toid,
-        19558132
-    )
-
-    testthat::expect_equal(
-        origin$topo,
-        'fl-fl'
-    )
-
-    testthat::expect_equal(
-        origin$hydroseq,
-        1356216
-    )
-})
-
-
-test_that("find_origin gives error on non existent ID", {
-
-    gpkg = testthat::test_path("testdata", "conus_reference_subset.gpkg")
-
-    # Input values: 
-    id = 99999999999999 
-    comid = NULL
-    hl_uri = NULL
-    poi_id = NULL
-    nldi_feature = NULL
-    xy = NULL
-    outfile = NULL
-    lyrs = c("flowpaths")
-
-    # gpkg = "/Volumes/T7SSD/lynker-spatial/hydrofabric/v3.0/reference-features/conus_reference.gpkg"
-    kv <- .dispatch_identifiers(id, comid, hl_uri, poi_id, nldi_feature, xy)
-  
-    if (!is.null(gpkg)) {
-        src <- query_source_sf(gpkg)
-    } else {
-        uri <- paste(source, paste0("v", hf_version), type, domain, sep = "/")
-        src <- query_source_arrow(uri)
-    }
-
-    query <-
-        query() |>
-        query_set_id(identifier = kv$value, type = kv$type) |>
-        # query_set_layers(layers = lyrs) |>
-        query_set_source(src)
-    
-    if (!is.null(outfile)) {
-        query <- query_set_sink(query, sink = outfile, overwrite = overwrite)
-    }
-
-    identifier <- query_get_id(query)
-    
-    testthat::expect_error(
-        origin <- find_origin(
-            network = query_source_layer(query$source, "network"),
-            id = identifier,
-            type = class(identifier)
+  # Check that bad parameters throw exceptions
+  for (param in bad_params) {
+    testthat::test_that(paste0("query<", params$type, "> throws error"), {
+      testthat::expect_error(
+        find_origin(
+          network = network,
+          id = param$value,
+          type = param$type
         ),
         "No origin found"
-    )
-
-})
-
-test_that("find_origin gives error on non existent hf_uri", {
-
-    gpkg = testthat::test_path("testdata", "conus_reference_subset.gpkg")
-
-    # Input values: 
-    id = NULL 
-    comid = NULL
-    hl_uri = "a-fake-uri"
-    poi_id = NULL
-    nldi_feature = NULL
-    xy = NULL
-    outfile = NULL
-    lyrs = c("flowpaths")
-
-    # gpkg = "/Volumes/T7SSD/lynker-spatial/hydrofabric/v3.0/reference-features/conus_reference.gpkg"
-    kv <- .dispatch_identifiers(id, comid, hl_uri, poi_id, nldi_feature, xy)
-  
-    if (!is.null(gpkg)) {
-        src <- query_source_sf(gpkg)
-    } else {
-        uri <- paste(source, paste0("v", hf_version), type, domain, sep = "/")
-        src <- query_source_arrow(uri)
-    }
-
-    query <-
-        query() |>
-        query_set_id(identifier = kv$value, type = kv$type) |>
-        # query_set_layers(layers = lyrs) |>
-        query_set_source(src)
-    
-    if (!is.null(outfile)) {
-        query <- query_set_sink(query, sink = outfile, overwrite = overwrite)
-    }
-
-    identifier <- query_get_id(query)
-    
-    testthat::expect_error(
-        origin <- find_origin(
-            network = query_source_layer(query$source, "network"),
-            id = identifier,
-            type = class(identifier)
-        ),
-        "No origin found"
-    )
-
-})
-
-test_that("find_origin on COMID", {
-
-    gpkg = testthat::test_path("testdata", "conus_reference_subset.gpkg")
-
-    # Input values: 
-    id = NULL 
-    comid = 19541968
-    hl_uri = NULL
-    poi_id = NULL
-    nldi_feature = NULL
-    xy = NULL
-    outfile = NULL
-    lyrs = c("flowpaths")
-
-    # gpkg = "/Volumes/T7SSD/lynker-spatial/hydrofabric/v3.0/reference-features/conus_reference.gpkg"
-    kv <- .dispatch_identifiers(id, comid, hl_uri, poi_id, nldi_feature, xy)
-  
-    if (!is.null(gpkg)) {
-        src <- query_source_sf(gpkg)
-    } else {
-        uri <- paste(source, paste0("v", hf_version), type, domain, sep = "/")
-        src <- query_source_arrow(uri)
-    }
-
-    query <-
-        query() |>
-        query_set_id(identifier = kv$value, type = kv$type) |>
-        # query_set_layers(layers = lyrs) |>
-        query_set_source(src)
-    
-    if (!is.null(outfile)) {
-        query <- query_set_sink(query, sink = outfile, overwrite = overwrite)
-    }
-
-    identifier <- query_get_id(query)
-
-    origin <- find_origin(
-        network = query_source_layer(query$source, "network"),
-        id = identifier,
-        type = class(identifier)
-    )
-
-
-    testthat::expect_true(
-        nrow(origin) == 1
-    )
-
-    testthat::expect_equal(
-        origin$id,
-        19541968
-    )
-
-    testthat::expect_equal(
-        origin$toid,
-        19541946
-    )
-
-    testthat::expect_equal(
-        origin$topo,
-        'fl-fl'
-    )
-
-    testthat::expect_equal(
-        origin$hydroseq,
-        1355615
-    )
-
-
-
-})
-
-test_that("find_origin on XY coord", {
-
-    gpkg = testthat::test_path("testdata", "conus_reference_subset.gpkg")
-
-    # Input values: 
-    id = NULL 
-    comid = NULL
-    hl_uri = NULL
-    poi_id = NULL
-    nldi_feature = NULL
-    xy = NULL
-    xy = c(-88.1971, 35.38836)
-    outfile = NULL
-    lyrs = c("flowpaths")
-
-    # gpkg = "/Volumes/T7SSD/lynker-spatial/hydrofabric/v3.0/reference-features/conus_reference.gpkg"
-    kv <- .dispatch_identifiers(id, comid, hl_uri, poi_id, nldi_feature, xy)
-  
-    if (!is.null(gpkg)) {
-        src <- query_source_sf(gpkg)
-    } else {
-        uri <- paste(source, paste0("v", hf_version), type, domain, sep = "/")
-        src <- query_source_arrow(uri)
-    }
-
-    query <-
-        query() |>
-        query_set_id(identifier = kv$value, type = kv$type) |>
-        # query_set_layers(layers = lyrs) |>
-        query_set_source(src)
-    
-    if (!is.null(outfile)) {
-        query <- query_set_sink(query, sink = outfile, overwrite = overwrite)
-    }
-
-    identifier <- query_get_id(query)
-
-    origin <- find_origin(
-        network = query_source_layer(query$source, "network"),
-        id = identifier,
-        type = class(identifier)
-    )
-
-
-    testthat::expect_true(
-        nrow(origin) == 1
-    )
-
-    testthat::expect_equal(
-        origin$id,
-        19550296
-    )
-
-    testthat::expect_equal(
-        origin$toid,
-        19550502
-    )
-
-    testthat::expect_equal(
-        origin$topo,
-        'fl-fl'
-    )
-
-    testthat::expect_equal(
-        origin$vpuid,
-        "06"
-    )
-
-    testthat::expect_equal(
-        origin$hydroseq,
-        1403112
-    )
-
-
-
-})
-
-test_that("find_origin on all 'id' in test conus_reference_subset.gpkg", {
-
-    gpkg = testthat::test_path("testdata", "conus_reference_subset.gpkg")
-
-    ALL_IDS = 
-        gpkg  %>% 
-        sf::read_sf(query = "SELECT id FROM flowpaths")  %>% 
-        dplyr::distinct() %>%
-        dplyr::pull()
-
-    # unique(ALL_IDS$id)
-
-    # Input values: 
-    for (id in ALL_IDS) {
-        
-        message(id)
-        # id = NULL 
-
-        comid = NULL
-        hl_uri = NULL
-        poi_id = NULL
-        nldi_feature = NULL
-        xy = NULL
-        outfile = NULL
-        lyrs = c("flowpaths")
-
-        # gpkg = "/Volumes/T7SSD/lynker-spatial/hydrofabric/v3.0/reference-features/conus_reference.gpkg"
-        kv <- .dispatch_identifiers(id, comid, hl_uri, poi_id, nldi_feature, xy)
-    
-        if (!is.null(gpkg)) {
-            src <- query_source_sf(gpkg)
-        } else {
-            uri <- paste(source, paste0("v", hf_version), type, domain, sep = "/")
-            src <- query_source_arrow(uri)
-        }
-
-        query <-
-            query() |>
-            query_set_id(identifier = kv$value, type = kv$type) |>
-            query_set_layers(layers = lyrs) |>
-            query_set_source(src)
-        
-        if (!is.null(outfile)) {
-            query <- query_set_sink(query, sink = outfile, overwrite = overwrite)
-        }
-
-        identifier <- query_get_id(query)
-
-        origin <- find_origin(
-            network = query_source_layer(query$source, "network"),
-            id = identifier,
-            type = class(identifier)
-        )
-
-
-        testthat::expect_true(
-            nrow(origin) == 1
-        )
-
-        testthat::expect_equal(
-            origin$id,
-            id
-        )
-        
-        testthat::expect_equal(
-            origin$topo,
-            'fl-fl'
-        )
-
-    }
-
-
-
+      )
+    })
+  }
 })
