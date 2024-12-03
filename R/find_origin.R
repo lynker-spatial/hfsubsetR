@@ -22,7 +22,7 @@ find_origin <- function(
   
   origin <-
     origin |>
-    dplyr::select(id, toid, vpuid, topo, hydroseq) |>
+    dplyr::select(any_of(c('id', 'toid', 'vpuid', 'topo', 'hydroseq'))) |>
     dplyr::distinct() |>
     dplyr::collect() |> 
     dplyr::slice_min(hydroseq, with_ties = TRUE)

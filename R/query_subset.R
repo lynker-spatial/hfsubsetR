@@ -11,14 +11,20 @@ query_subset <- function(query) {
     id = identifier,
     type = class(identifier)
   )
-
-  network <- query_source_layer(query$source, "network") |>
-    dplyr::filter(vpuid == !!origin$vpuid) |>
+  
+  network <- query_source_layer(query$source, "network")
+  
+  if(!is.null(suppressWarnings(origin$vpuid))){
+   network = dplyr::filter(network, vpuid == !!origin$vpuid)
+  } 
+  
+  network <- network |>
     dplyr::select(dplyr::any_of(c("id", "toid", "divide_id", "poi_id"))) |>
     dplyr::distinct() |>
     dplyr::collect()
 
   topology <- suppressWarnings(nhdplusTools::get_sorted(network, outlets = origin$toid))
+  
   topology$toid[nrow(topology)] <- NA
 
   all_identifiers <-
@@ -29,7 +35,7 @@ query_subset <- function(query) {
   all_identifiers <-
     all_identifiers[!is.na(all_identifiers)]
 
-  query$vpuid <- origin$vpuid
+  query$vpuid <- suppressWarnings({ origin$vpuid })
   query$requested <- all_identifiers
 
   query_extract(query)
@@ -40,7 +46,9 @@ query_subset <- function(query) {
 #' @returns A list of hydrofabric layers, or the path to the sink of the query
 #' @note This should be called from query_subset().
 #' @keywords internal
+#' 
 query_extract <- function(query) {
+  
   layers  <- query_get_layers(query)
   result  <- new.env(size = length(layers))
   outfile <- query_get_sink(query)
@@ -55,8 +63,11 @@ query_extract <- function(query) {
       next
     }
 
-    layer_data <- dplyr::filter(layer_data, vpuid == !!query$vpuid)
-    variables <- c("COMID", "FEATUREID", "divide_id", "link", "to", "id", "toid", "ID", "poi_id")
+    if(!is.null(suppressWarnings(query$vpuid))){
+      layer_data <- dplyr::filter(layer_data, vpuid == !!query$vpuid)
+    }
+   
+     variables <- c("COMID", "FEATUREID", "divide_id", "link", "to", "id", "toid", "ID", "poi_id")
   
     if ("poi_id" %in% colnames(layer_data)) {
       layer_data <- dplyr::mutate(layer_data, poi_id = as.character(poi_id))
