@@ -69,14 +69,14 @@
 </h3>
 <p>We can download a version (default = ‘2.2’) hydrofabric (default = ‘nextgen’) for any domain (default = ‘conus’) using <code>get_hydrofabric</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">gpkg</span> <span class="op">&lt;-</span> <span class="st">'/Users/mikejohnson/hydrofabric/conus_nextgen.gpkg'</span></span>
+<code class="sourceCode R"><span><span class="va">gpkg</span> <span class="op">&lt;-</span> <span class="st">'./conus_nextgen.gpkg'</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/get_hydrofabric.html">get_hydrofabric</a></span><span class="op">(</span>outfile <span class="op">=</span> <span class="va">gpkg</span><span class="op">)</span></span></code></pre></div>
 <p>From that, we can extract data for a VPU:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/get_vpu_fabric.html">get_vpu_fabric</a></span><span class="op">(</span><span class="va">gpkg</span>, </span>
 <span>               vpuid <span class="op">=</span> <span class="st">"01"</span>, </span>
-<span>               outfile <span class="op">=</span> <span class="st">'/Users/mikejohnson/hydrofabric/01_nextgen.gpkg'</span><span class="op">)</span></span></code></pre></div>
+<span>               outfile <span class="op">=</span> <span class="st">'./01_nextgen.gpkg'</span><span class="op">)</span></span></code></pre></div>
 <p>Or, we can extract a subset based on an input identifier (one of <code>id</code>, <code>comid</code>, <code>hl_uri</code>, <code>poi_id</code>, <code>nldi_feature</code>, <code>xy</code>):</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">subset_fabric</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_subset.html">get_subset</a></span><span class="op">(</span>gpkg <span class="op">=</span> <span class="va">gpkg</span>, comid <span class="op">=</span> <span class="fl">101</span><span class="op">)</span></span></code></pre></div>

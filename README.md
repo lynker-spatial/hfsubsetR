@@ -39,7 +39,7 @@ We can download a version (default = ‘2.2’) hydrofabric (default =
 ‘nextgen’) for any domain (default = ‘conus’) using `get_hydrofabric`.
 
 ``` r
-gpkg <- '/Users/mikejohnson/hydrofabric/conus_nextgen.gpkg'
+gpkg <- './conus_nextgen.gpkg'
 
 get_hydrofabric(outfile = gpkg)
 ```
@@ -49,7 +49,7 @@ From that, we can extract data for a VPU:
 ``` r
 get_vpu_fabric(gpkg, 
                vpuid = "01", 
-               outfile = '/Users/mikejohnson/hydrofabric/01_nextgen.gpkg')
+               outfile = './01_nextgen.gpkg')
 ```
 
 Or, we can extract a subset based on an input identifier (one of `id`,
