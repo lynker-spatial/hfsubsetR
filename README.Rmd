@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 gpkg = '/Users/mikejohnson/hydrofabric/conus_nextgen.gpkg'
 ```
 
-# hfsubsetR
+# hfsubsetR <a href="https://github.com/lynker-spatial/hfsubsetR"><img src="man/figures/logo.png" align="right" width="25%"/></a>
 
 <!-- badges: start -->
 [![R CMD Check](https://github.com/lynker-spatial/hfsubsetR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/lynker-spatial/hfsubsetR/actions/workflows/R-CMD-check.yaml)
