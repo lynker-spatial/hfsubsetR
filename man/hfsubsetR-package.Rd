@@ -6,7 +6,7 @@
 \alias{hfsubsetR-package}
 \title{hfsubsetR: Hydrofabric Subsetter}
 \description{
-Subset Hydrofabric Data in R
+Subset Hydrofabric Data in R.
 }
 \seealso{
 Useful links:
@@ -17,11 +17,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Mike Johnson \email{jjohnson@lynker.com}
+\strong{Maintainer}: Mike Johnson \email{mike.johnson@noaa.gov}
 
-Other contributors:
+Authors:
 \itemize{
-  \item Justin Singh-Mohudpur [contributor]
+  \item Justin Singh-Mohudpur
 }
 
 }

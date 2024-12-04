@@ -11,6 +11,7 @@ find_origin <- function(
   type = c("id", "comid", "hl_uri", "poi_id", "nldi_feature", "xy")
 ) {
 
+  hydroseq <- NULL
   type <- match.arg(type)
   query <- structure(id, class = type)
 
@@ -65,6 +66,7 @@ find_origin_query.id <- function(id, network) {
 #' @method find_origin_query comid
 #' @keywords internal
 find_origin_query.comid <- function(comid, network) {
+  hf_id <- NULL
   comid <- unclass(comid)
   dplyr::filter(network, hf_id == !!comid)
 }

@@ -4,6 +4,8 @@
 #' @export
 query_subset <- function(query) {
   
+  vpuid <- NULL
+  
   identifier <- query_get_id(query)
   
   origin <- find_origin(
@@ -48,7 +50,7 @@ query_subset <- function(query) {
 #' @keywords internal
 #' 
 query_extract <- function(query) {
-  
+  vpuid <- poi_id <- NULL
   layers  <- query_get_layers(query)
   result  <- new.env(size = length(layers))
   outfile <- query_get_sink(query)
