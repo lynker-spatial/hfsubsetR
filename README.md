@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# hfsubsetR  <a href="https://github.com/lynker-spatial/hfsubsetR"><img src="man/figures/logo.png" align="right" width="25%"/></a>
+# hfsubsetR <a href="https://github.com/lynker-spatial/hfsubsetR"><img src="man/figures/logo.png" align="right" width="25%"/></a>
 
 <!-- badges: start -->
 
