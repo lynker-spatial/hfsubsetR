@@ -23,6 +23,49 @@ You can install the development version of `hfsubsetR` from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("lynker-spatial/hfsubsetR")
+# install.packages("remotes")
+remotes::install_github("lynker-spatial/hfsubsetR")
 ```
+
+``` r
+library(hfsubsetR)
+```
+
+## Basic Use
+
+### From local file
+
+We can download a version (default = ‘2.2’) hydrofabric (default =
+‘nextgen’) for any domain (default = ‘conus’) using `get_hydrofabric`.
+
+``` r
+gpkg <- '/Users/mikejohnson/hydrofabric/conus_nextgen.gpkg'
+
+get_hydrofabric(outfile = gpkg)
+```
+
+From that, we can extract data for a VPU:
+
+``` r
+get_vpu_fabric(gpkg, 
+               vpuid = "01", 
+               outfile = '/Users/mikejohnson/hydrofabric/01_nextgen.gpkg')
+```
+
+Or, we can extract a subset based on an input identifier (one of `id`,
+`comid`, `hl_uri`, `poi_id`, `nldi_feature`, `xy`):
+
+``` r
+subset_fabric <- get_subset(gpkg = gpkg, comid = 101)
+```
+
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
+
+### From Remote
+
+Coming soon…
+
+### Questions?
+
+Please reach out via an issue or PR if you have comments, concerns, or
+questions!
